@@ -1,0 +1,31 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  width: 100%;
+}
+.logo {
+  font-size: 2rem;
+}
+
+.sensor-form {
+  justify-self: center;
+  &::after {
+    content: "▼";
+    position: relative;
+    right: 15px;
+  }
+}
+.sensor-list {
+  font-size: 1.5rem;
+  border: 0px;
+  background: none;
+  border-bottom: 1px solid #545f66;
+  text-align: center;
+  &:hover {
+    background: #c4d0d16e;
+    box-shadow: 0 0 5px 5px #c4d0d1;
+    border-radius: 8px;
+  }
+}
