@@ -1,16 +1,8 @@
 const express = require("express");
-const { Client } = require("pg");
 
+const { client } = require("./config.js");
 const app = express();
 // LISTEN database
-
-const client = new Client({
-  user: "postgres",
-  host: "epa.clrt814nnnpd.ap-southeast-1.rds.amazonaws.com",
-  database: "epa",
-  password: "#Yzu70936",
-  port: 5432,
-});
 
 client.connect();
 
@@ -19,10 +11,18 @@ client.query("LISTEN record_changes");
 client.on("notification", (msg) => {
   console.log(`Received notification: ${msg.payload}`);
 });
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 
 app.get("/record/all", async (req, res) => {
   try {
-    const queryResult = await client.query("SELECT * FROM Records");
+    const queryResult = await client.query('SELECT * FROM Records ORDER BY "timestamp" DESC');
     res.json(queryResult.rows);
   } catch (error) {
     console.error(error);
@@ -30,8 +30,8 @@ app.get("/record/all", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("Server listening at port 3000 !!");
+app.listen(8963, () => {
+  console.log("Server listening at port 8963 !!");
 });
 
 // data format
