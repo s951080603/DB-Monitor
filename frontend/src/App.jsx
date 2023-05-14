@@ -13,7 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<SharedLayout />}>
           <Route index element={<AllRecords />} />
-          <Route path="test" element={<SingleSensorRecord />} />
+          {/* <Route path="test" element={<SingleSensorRecord />} /> */}
         </Route>
       </Routes>
     </BrowserRouter>

@@ -8,21 +8,60 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
-
+import { useEffect, useState } from "react";
+import io from "socket.io-client";
 const columns = [
-  { id: "sensorId", label: "Sensor ID", minWidth: 200 },
-  { id: "sensorMac", label: "Mac Address", minWidth: 200 },
-  { id: "subtype", label: "Subtype", minWidth: 200 },
-  { id: "value", label: "Value", minWidth: 200 },
-  { id: "voltage", label: "Voltage", minWidth: 200 },
-  { id: "location", label: "Location", minWidth: 200 },
-  { id: "timestamp", label: "Timestamp", minWidth: 200 },
+  { id: "sensorid", label: "Sensor ID", minWidth: 200, align: "center" },
+  { id: "sensormac", label: "Mac Address", minWidth: 150, align: "center" },
+  { id: "subtype", label: "Subtype", minWidth: 150, align: "center" },
+  { id: "value", label: "Value", minWidth: 150, align: "center" },
+  { id: "voltage", label: "Voltage", minWidth: 150, align: "center" },
+  { id: "location", label: "Location", minWidth: 150, align: "center" },
+  { id: "timestamp", label: "Timestamp", minWidth: 250, align: "center" },
 ];
 
-
-
+const fetchRecords = async () => {
+  const response = await fetch("http://chiu.hopto.org:8963/record/all");
+  const data = await response.json();
+  return data;
+};
 
 const AllRecords = () => {
+  const [rows, setRows] = useState([]);
+  useEffect(() => {
+    let start = new Date();
+    fetchRecords()
+      .then((data) => {
+        setRows(data);
+        let end = new Date();
+        console.log(`fetch data spent: ${(end - start) / 1000} s`);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    const socket = io("http://chiu.hopto.org:8080");
+    socket.on("connect", () => {
+      console.log("Connected to socket.io server");
+    });
+    // 監聽來自伺服器端的訊息
+    socket.on("message", (data) => {
+      console.log(data);
+    });
+    socket.on("db-notify", (data) => {
+      setRows((currentRows) => {
+        const newRows = [data, ...currentRows];
+        return newRows;
+      });
+      console.log("new data coming");
+    });
+
+    // 結束時關閉連線
+    return () => {
+      socket.disconnect();
+      console.log("socket disconnect");
+    };
+  }, []);
   return (
     <section className="all-records">
       <div className="title">Records</div>
@@ -50,7 +89,7 @@ const AllRecords = () => {
           </tr>
         </tbody>
       </table> */}
-      <TableContainer sx={{ maxHeight: 440 }}>
+      <TableContainer sx={{ maxHeight: 780 }}>
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
             <TableRow>
@@ -66,24 +105,25 @@ const AllRecords = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => {
-                return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                    {columns.map((column) => {
-                      const value = row[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === "number"
-                            ? column.format(value)
-                            : value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
+            {rows.map((row, i) => {
+              return (
+                <TableRow
+                  hover
+                  role="checkbox"
+                  tabIndex={-1}
+                  key={row["timestamp"] + row["sensorid"]}
+                >
+                  {columns.map((column) => {
+                    const value = row[column.id];
+                    return (
+                      <TableCell key={column.id + i} align={column.align}>
+                        {row[column.id] || "null"}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
