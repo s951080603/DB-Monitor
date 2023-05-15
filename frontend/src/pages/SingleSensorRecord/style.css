@@ -1,1 +1,31 @@
-/*# sourceMappingURL=style.css.map */
+@charset "UTF-8";
+.records-container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 修改 grid-template-columns 屬性 */
+}
+
+.all-records {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  grid-column: 1/5; /* 修改 grid-column 屬性 */
+}
+.all-records h2 {
+  padding: 10px 0 0 0;
+}
+
+.category-records {
+  grid-column: 5/8; /* 修改 grid-column 屬性 */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.category-records .records {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+.category-records .records h3 {
+  padding: 10px;
+}/*# sourceMappingURL=style.css.map */

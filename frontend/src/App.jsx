@@ -17,6 +17,31 @@ function App() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
+    const socket = io("http://chiu.hopto.org:8080");
+
+    socket.on("connect", () => {
+      console.log("Connected to socket.io server");
+    });
+
+    socket.on("message", (data) => {
+      console.log(data);
+    });
+
+    socket.on("db-notify", (data) => {
+      setRows((currentRows) => {
+        const newRows = [data, ...currentRows];
+        return newRows;
+      });
+      console.log("new data coming");
+    });
+
+    return () => {
+      socket.disconnect();
+      console.log("socket disconnect");
+    };
+  }, []);
+
+  useEffect(() => {
     let start = new Date();
     fetchRecords()
       .then((data) => {
@@ -27,28 +52,6 @@ function App() {
       .catch((error) => {
         console.error(error);
       });
-
-    const socket = io("http://chiu.hopto.org:8080");
-    socket.on("connect", () => {
-      console.log("Connected to socket.io server");
-    });
-    // 監聽來自伺服器端的訊息
-    socket.on("message", (data) => {
-      console.log(data);
-    });
-    socket.on("db-notify", (data) => {
-      setRows((currentRows) => {
-        const newRows = [data, ...currentRows];
-        return newRows;
-      });
-      console.log("new data coming");
-    });
-
-    // 結束時關閉連線
-    return () => {
-      socket.disconnect();
-      console.log("socket disconnect");
-    };
   }, []);
 
   return (
@@ -56,7 +59,9 @@ function App() {
       <Routes>
         <Route path="/" element={<SharedLayout />}>
           <Route index element={<AllRecords rows={rows} />} />
-          {/* <Route path="/:sensorMac" element={<SingleSensorRecord />} /> */}
+          <Route path="/ALL" element={<AllRecords rows={rows} />} />
+
+          <Route path="/:devEUI" element={<SingleSensorRecord rows={rows} />} />
         </Route>
       </Routes>
     </BrowserRouter>

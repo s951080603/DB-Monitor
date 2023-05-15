@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
 import { pm25SensorList, tvocSensorList } from "../../data";
 import "./style.css";
-import { Outlet } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
+  const [devEUI, setDevEUI] = useState("ALL");
+  const navigate = useNavigate();
+
+  const handleSelectChange = (event) => {
+    const devEUI = event.target.value;
+    setDevEUI(devEUI);
+    navigate(`/${devEUI}`);
+  };
+
   const [currentTime, setCurrentTime] = useState(
     new Date(Date.now()).toLocaleString()
   );
-  const [sensorMac, setSensorMac] = useState("ALL");
   useEffect(() => {
     const timeId = setInterval(() => {
       console.log("set interval");
@@ -23,12 +31,9 @@ const Header = () => {
         <select
           className="sensor-list"
           name="sensor"
-          value={sensorMac}
+          value={devEUI}
           id="sensor"
-          onChange={(e) => {
-            console.log(e.target.value);
-            setSensorMac(e.target.value);
-          }}
+          onChange={handleSelectChange}
         >
           <option>ALL</option>
           <option disabled>------ PM2.5 ------</option>
