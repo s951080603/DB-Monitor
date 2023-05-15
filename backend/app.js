@@ -1,10 +1,9 @@
 const express = require("express");
-
 const { client } = require("./config.js");
 const app = express();
 const http = require("http");
 const socketIo = require("socket.io");
-const { log } = require("console");
+const { resolve } = require("path");
 
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -14,6 +13,12 @@ const io = socketIo(server, {
   },
 });
 // LISTEN database
+let formatData;
+
+(async () => {
+  formatData = await parseData();
+  console.log(formatData);
+})();
 
 client.connect();
 
@@ -28,19 +33,71 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/record/all", async (req, res) => {
+async function parseData() {
   try {
-    const queryResult = await client.query(
-      'SELECT * FROM Records ORDER BY "timestamp" DESC'
+    const records = await client.query(
+      'SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations."locDesc" \
+    FROM RegistedSnrs \
+    INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid \
+    INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid\
+    ORDER BY Records."timestamp" DESC'
     );
-    const rows = queryResult.rows;
-    for (const row of rows) {
+    const recordsRow = records.rows;
+
+    // format timestamp to Local timestamp
+    for (const row of recordsRow) {
+      row.value = row.value + " " + row.unit;
       row.timestamp = new Date(row.timestamp).toLocaleString("zh-TW", {
         timeZone: "Asia/Taipei",
         hour12: false,
       });
     }
-    res.json(rows);
+    return recordsRow;
+  } catch (e) {
+    console.log("query error!");
+    console.log(e);
+    return;
+  }
+}
+
+// socket connect
+io.on("connection", (socket) => {
+  console.log("A client connected");
+
+  // send message to ALL client
+  io.emit("message", "A new client connected");
+
+  // when access the record insert or update
+  client.on("notification", (msg) => {
+    console.log(`Received notification: ${msg.payload}`);
+
+    const objPayload = JSON.parse(msg.payload);
+    const newPayload = {
+      ...objPayload,
+      value: objPayload.value + " " + objPayload.unit,
+      timestamp: new Date(objPayload.timestamp).toLocaleString("zh-TW", {
+        timeZone: "Asia/Taipei",
+        hour12: false,
+      }),
+    };
+
+    // update local data
+    const tempData = formatData;
+    formatData = [newPayload, ...tempData];
+    socket.emit("db-notify", newPayload);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("A client disconnected");
+  });
+});
+
+app.get("/record/all", (req, res) => {
+  try {
+    const start = new Date();
+    res.json(formatData);
+    const end = new Date();
+    console.log(`spend ${(end - start) / 1000}s`);
   } catch (error) {
     console.error(error);
     res.status(500).send("Interval Server Error");
@@ -56,30 +113,4 @@ app.listen(8963, () => {
 
 server.listen(8080, () => {
   console.log("Socket.io server is running on port 8080");
-});
-
-io.on("connection", (socket) => {
-  console.log("A client connected");
-
-  // 在此發送訊息給所有客戶端
-  io.emit("message", "A new client connected");
-
-  client.on("notification", (msg) => {
-    console.log(`Received notification: ${msg.payload}`);
-    // 在此發送訊息給當前客戶端
-    const objPayload = JSON.parse(msg.payload);
-    const newPayload = {
-      ...objPayload,
-      timestamp: new Date(objPayload.timestamp).toLocaleString("zh-TW", {
-        timeZone: "Asia/Taipei",
-        hour12: false,
-      }),
-    };
-
-    socket.emit("db-notify", newPayload);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("A client disconnected");
-  });
 });
