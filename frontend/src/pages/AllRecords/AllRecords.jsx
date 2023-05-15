@@ -10,13 +10,14 @@ import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
+
 const columns = [
   { id: "sensorid", label: "Sensor ID", minWidth: 200, align: "center" },
-  { id: "sensormac", label: "Mac Address", minWidth: 150, align: "center" },
-  { id: "subtype", label: "Subtype", minWidth: 150, align: "center" },
+  { id: "mac", label: "Mac Address", minWidth: 150, align: "center" },
+  { id: "Desc", label: "Subtype", minWidth: 150, align: "center" },
   { id: "value", label: "Value", minWidth: 150, align: "center" },
   { id: "voltage", label: "Voltage", minWidth: 150, align: "center" },
-  { id: "location", label: "Location", minWidth: 150, align: "center" },
+  { id: "locDesc", label: "Location", minWidth: 150, align: "center" },
   { id: "timestamp", label: "Timestamp", minWidth: 250, align: "center" },
 ];
 
@@ -65,30 +66,7 @@ const AllRecords = () => {
   return (
     <section className="all-records">
       <div className="title">Records</div>
-      {/* <table className="records-table">
-        <thead className="records-table-head">
-          <tr className="records-table-row">
-            <th>Sensor ID</th>
-            <th>Mac Address</th>
-            <th>Subtype</th>
-            <th>Value</th>
-            <th>Voltage</th>
-            <th>Location</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody className="records-table-body">
-          <tr className="records-table-row">
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-            <td>{}</td>
-          </tr>
-        </tbody>
-      </table> */}
+      
       <TableContainer sx={{ maxHeight: 780 }}>
         <Table stickyHeader aria-label="sticky table">
           <TableHead>
