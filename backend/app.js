@@ -3,7 +3,6 @@ const { client } = require("./config.js");
 const app = express();
 const http = require("http");
 const socketIo = require("socket.io");
-const { resolve } = require("path");
 
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -97,6 +96,7 @@ app.get("/record/all", (req, res) => {
     const start = new Date();
     res.json(formatData);
     const end = new Date();
+    console.log(formatData);
     console.log(`spend ${(end - start) / 1000}s`);
   } catch (error) {
     console.error(error);
