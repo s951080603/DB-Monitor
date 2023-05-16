@@ -12,11 +12,11 @@ const io = socketIo(server, {
   },
 });
 // LISTEN database
+
 let formatData;
 
 (async () => {
   formatData = await parseData();
-  console.log(formatData);
 })();
 
 client.connect();
@@ -51,6 +51,7 @@ async function parseData() {
         hour12: false,
       });
     }
+
     return recordsRow;
   } catch (e) {
     console.log("query error!");
@@ -71,6 +72,7 @@ io.on("connection", (socket) => {
     console.log(`Received notification: ${msg.payload}`);
 
     const objPayload = JSON.parse(msg.payload);
+
     const newPayload = {
       ...objPayload,
       value: objPayload.value + " " + objPayload.unit,
@@ -82,8 +84,11 @@ io.on("connection", (socket) => {
 
     // update local data
     const tempData = formatData;
-    formatData = [newPayload, ...tempData];
-    socket.emit("db-notify", newPayload);
+    if (!checkObjectExist(objPayload, tempData)) {
+      formatData = [newPayload, ...tempData];
+      console.log(newPayload);
+      socket.emit("db-notify", newPayload);
+    }
   });
 
   socket.on("disconnect", () => {
@@ -96,7 +101,6 @@ app.get("/record/all", (req, res) => {
     const start = new Date();
     res.json(formatData);
     const end = new Date();
-    console.log(formatData);
     console.log(`spend ${(end - start) / 1000}s`);
   } catch (error) {
     console.error(error);
@@ -114,3 +118,15 @@ app.listen(8963, () => {
 server.listen(8080, () => {
   console.log("Socket.io server is running on port 8080");
 });
+
+function checkObjectExist(newObj, objList) {
+  objList.forEach((obj, index) => {
+    if (JSON.stringify(newObj) === JSON.stringify(obj)) {
+      return true;
+    }
+    if (index > 30) {
+      // early return
+      return false;
+    }
+  });
+}
