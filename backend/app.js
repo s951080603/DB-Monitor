@@ -84,7 +84,7 @@ io.on("connection", (socket) => {
 
     // update local data
     const tempData = formatData;
-    if (!checkObjectExist(objPayload, tempData)) {
+    if (!checkJsonDuplicate(objPayload, tempData)) {
       formatData = [newPayload, ...tempData];
       console.log(newPayload);
       socket.emit("db-notify", newPayload);
@@ -119,7 +119,7 @@ server.listen(8080, () => {
   console.log("Socket.io server is running on port 8080");
 });
 
-function checkObjectExist(newObj, objList) {
+function checkJsonDuplicate(newObj, objList) {
   objList.forEach((obj, index) => {
     if (JSON.stringify(newObj) === JSON.stringify(obj)) {
       return true;
