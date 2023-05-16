@@ -40,7 +40,7 @@ const catRecordsColumns = [
 const SingleSensorRecord = ({ rows }) => {
   const { devEUI } = useParams();
   const tempDevEUI = devEUI;
-  const devMac = "00000000000" + tempDevEUI.substring(11, 16).toLowerCase();
+  const devMac = tempDevEUI.toLowerCase();
   useEffect(() => {}, []);
   console.log(devMac + "!!!!!!!!!!!!1");
   const filterRows = rows.filter((row) => {
