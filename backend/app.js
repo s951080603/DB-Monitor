@@ -61,41 +61,40 @@ async function parseData() {
 }
 
 // socket connect
-io.on("connection", (socket) => {
+io.on("connection", () => {
   console.log("A client connected");
 
   // send message to ALL client
   io.emit("message", "A new client connected");
-
-  // when access the record insert or update
-  client.on("notification", (msg) => {
-    console.log(`Received notification: ${msg.payload}`);
-
-    const objPayload = JSON.parse(msg.payload);
-
-    const newPayload = {
-      ...objPayload,
-      value: objPayload.value + " " + objPayload.unit,
-      timestamp: new Date(objPayload.timestamp).toLocaleString("zh-TW", {
-        timeZone: "Asia/Taipei",
-        hour12: false,
-      }),
-    };
-
-    // update local data
-    const tempData = formatData;
-    if (!checkJsonDuplicate(objPayload, tempData)) {
-      formatData = [newPayload, ...tempData];
-      console.log(newPayload);
-      socket.emit("db-notify", newPayload);
-    }
-  });
-
-  socket.on("disconnect", () => {
-    console.log("A client disconnected");
-  });
 });
 
+// when access the record insert or update
+client.on("notification", (msg) => {
+  console.log(`Received notification: ${msg.payload}`);
+
+  const objPayload = JSON.parse(msg.payload);
+
+  const newPayload = {
+    ...objPayload,
+    value: objPayload.value + " " + objPayload.unit,
+    timestamp: new Date(objPayload.timestamp).toLocaleString("zh-TW", {
+      timeZone: "Asia/Taipei",
+      hour12: false,
+    }),
+  };
+
+  // update local data
+  const tempData = formatData;
+  formatData = [newPayload, ...tempData];
+  console.log(newPayload);
+
+  
+  io.emit("db-notify", newPayload);
+});
+
+io.on("disconnect", () => {
+  console.log("A client disconnected");
+});
 app.get("/record/all", (req, res) => {
   try {
     const start = new Date();
@@ -118,15 +117,3 @@ app.listen(8963, () => {
 server.listen(8080, () => {
   console.log("Socket.io server is running on port 8080");
 });
-
-function checkJsonDuplicate(newObj, objList) {
-  objList.forEach((obj, index) => {
-    if (JSON.stringify(newObj) === JSON.stringify(obj)) {
-      return true;
-    }
-    if (index > 30) {
-      // early return
-      return false;
-    }
-  });
-}
