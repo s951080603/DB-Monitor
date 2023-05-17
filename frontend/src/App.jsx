@@ -59,7 +59,7 @@ function App() {
       <Routes>
         <Route path="/" element={<SharedLayout />}>
           <Route index element={<AllRecords rows={rows} />} />
-          <Route path="/ALL" element={<AllRecords rows={rows} />} />
+          <Route path="/all" element={<AllRecords rows={rows} />} />
 
           <Route path="/:devEUI" element={<SingleSensorRecord rows={rows} />} />
         </Route>

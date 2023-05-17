@@ -10,7 +10,7 @@ const Header = () => {
   const handleSelectChange = (event) => {
     const devEUI = event.target.value;
     setDevEUI(devEUI);
-    navigate(`/${devEUI}`);
+    navigate(`/${devEUI.toLowerCase()}`);
   };
 
   const [currentTime, setCurrentTime] = useState(
