@@ -3,6 +3,12 @@ import { pm25SensorList, tvocSensorList } from "../../data";
 import "./style.css";
 import { useNavigate } from "react-router-dom";
 
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import ListSubheader from "@mui/material/ListSubheader";
+import FormControl from "@mui/material/FormControl";
+import Select from "@mui/material/Select";
+
 const Header = () => {
   const [devEUI, setDevEUI] = useState("ALL");
   const navigate = useNavigate();
@@ -26,34 +32,40 @@ const Header = () => {
   return (
     <header className="header">
       <div className="logo">DB MONITOR</div>
-      <form className="sensor-form">
-        <label htmlFor="sensor"></label>
-        <select
-          className="sensor-list"
-          name="sensor"
-          value={devEUI}
-          id="sensor"
+
+      <FormControl sx={{ m: 1, minWidth: 120 }}>
+        <InputLabel htmlFor="grouped-native-select">Sensor</InputLabel>
+        <Select
+          native
+          defaultValue=""
+          id="grouped-native-select"
+          label="Grouping"
           onChange={handleSelectChange}
         >
-          <option>ALL</option>
-          <option disabled>------ PM2.5 ------</option>
-          {pm25SensorList.map((mac) => {
-            return (
-              <option key={mac} value={mac}>
-                {mac}
-              </option>
-            );
-          })}
-          <option disabled>------- TVOC -------</option>
-          {tvocSensorList.map((mac) => {
-            return (
-              <option key={mac} value={mac}>
-                {mac}
-              </option>
-            );
-          })}
-        </select>
-      </form>
+          <option aria-label="All" value="All">
+            <em>ALL</em>
+          </option>
+          <optgroup label="PM2.5">
+            {pm25SensorList.map((mac) => {
+              return (
+                <option key={mac} value={mac}>
+                  {mac}
+                </option>
+              );
+            })}
+          </optgroup>
+          <optgroup label="TVOC">
+            {tvocSensorList.map((mac) => {
+              return (
+                <option key={mac} value={mac}>
+                  {mac}
+                </option>
+              );
+            })}
+          </optgroup>
+        </Select>
+      </FormControl>
+
       <div className="current-time">{currentTime}</div>
     </header>
   );
