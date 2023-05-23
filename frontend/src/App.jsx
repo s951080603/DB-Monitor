@@ -19,14 +19,6 @@ function App() {
   useEffect(() => {
     const socket = io("http://chiu.hopto.org:8080");
 
-    socket.on("connect", () => {
-      console.log("Connected to socket.io server");
-    });
-
-    socket.on("message", (data) => {
-      console.log(data);
-    });
-
     socket.on("db-notify", (data) => {
       setRows((currentRows) => {
         const newRows = [data, ...currentRows];
@@ -47,7 +39,6 @@ function App() {
       .then((data) => {
         setRows(data);
         let end = new Date();
-        console.log(`fetch data spent: ${(end - start) / 1000} s`);
       })
       .catch((error) => {
         console.error(error);

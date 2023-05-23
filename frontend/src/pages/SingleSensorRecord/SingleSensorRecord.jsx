@@ -27,11 +27,13 @@ const topColumns = [
     align: "center",
   },
 ];
+
 const recordsColumns = [
   { id: "sensorid", label: "Sensor ID", align: "center", minWidth: 150 },
   { id: "value", label: "Value", align: "center", minWidth: 150 },
   { id: "timestamp", label: "Timestamp", align: "center", minWidth: 200 },
 ];
+
 const catRecordsColumns = [
   { id: "value", label: "Value", align: "center" },
   { id: "timestamp", label: "Timestamp", align: "center" },
@@ -39,16 +41,18 @@ const catRecordsColumns = [
 
 const SingleSensorRecord = ({ rows }) => {
   const { devEUI } = useParams();
+
   const tempDevEUI = devEUI;
   const devMac = tempDevEUI.toLowerCase();
-  useEffect(() => {}, []);
-  console.log(devMac + "!!!!!!!!!!!!1");
-  const filterRows = rows.filter((row) => {
-    return row.mac == devMac;
-  });
-  console.log(filterRows.length + "!!!!!!!!~~~");
 
-  let row =
+  // filter the data matching mac
+  const filterRows = rows
+    .filter((row) => {
+      return row.mac == devMac;
+    })
+    .sort();
+
+  const row =
     filterRows.length == 0
       ? []
       : {
@@ -65,7 +69,7 @@ const SingleSensorRecord = ({ rows }) => {
 
   return (
     <section className="sensor-records">
-      <TableContainer component={Paper}>
+      <TableContainer sx={{ marginTrim: 10, boxShadow: 5 }} component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
@@ -101,7 +105,7 @@ const SingleSensorRecord = ({ rows }) => {
       <div className="records-container">
         <div className="all-records">
           <h2>All Records</h2>
-          <TableContainer sx={{ maxHeight: 500 }}>
+          <TableContainer sx={{ maxHeight: 600 }}>
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
                 <TableRow>
@@ -167,6 +171,7 @@ const SingleSensorRecord = ({ rows }) => {
                           sx={{
                             "&:last-child td, &:last-child th": { border: 0 },
                           }}
+                          // NOTE:
                         >
                           {catRecordsColumns.map((col) => {
                             return (

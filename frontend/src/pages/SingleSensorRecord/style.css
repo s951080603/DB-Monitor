@@ -1,4 +1,8 @@
 @charset "UTF-8";
+.sensor-records {
+  padding: 0 2rem 0 2rem;
+}
+
 .records-container {
   display: grid;
   grid-template-columns: repeat(7, 1fr); /* 修改 grid-template-columns 屬性 */

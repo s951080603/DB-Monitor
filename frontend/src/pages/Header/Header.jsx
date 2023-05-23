@@ -24,7 +24,6 @@ const Header = () => {
   );
   useEffect(() => {
     const timeId = setInterval(() => {
-      console.log("set interval");
       setCurrentTime(new Date(Date.now()).toLocaleString());
     }, 1000);
     return () => clearInterval(timeId);
@@ -41,9 +40,10 @@ const Header = () => {
           id="grouped-native-select"
           label="Grouping"
           onChange={handleSelectChange}
+          sx={{ fontSize: 24, color: "#545f66" }}
         >
-          <option aria-label="All" value="All">
-            <em>ALL</em>
+          <option style={{ textAlign: "center" }} label="All" value="All">
+            ALL
           </option>
           <optgroup label="PM2.5">
             {pm25SensorList.map((mac) => {

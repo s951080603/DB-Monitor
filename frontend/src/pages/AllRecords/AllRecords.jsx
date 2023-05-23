@@ -8,13 +8,13 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 
 const columns = [
-  { id: "sensorid", label: "Sensor ID", minWidth: 200, align: "center" },
-  { id: "mac", label: "Mac Address", minWidth: 150, align: "center" },
-  { id: "Desc", label: "Subtype", minWidth: 150, align: "center" },
-  { id: "value", label: "Value", minWidth: 150, align: "center" },
-  { id: "voltage", label: "Voltage", minWidth: 150, align: "center" },
-  { id: "locDesc", label: "Location", minWidth: 150, align: "center" },
-  { id: "timestamp", label: "Timestamp", minWidth: 250, align: "center" },
+  { id: "sensorid", label: "Sensor ID", minWidth: 160, align: "center" },
+  { id: "mac", label: "Mac Address", minWidth: 140, align: "center" },
+  { id: "Desc", label: "Subtype", minWidth: 140, align: "center" },
+  { id: "value", label: "Value", minWidth: 160, align: "center" },
+  { id: "voltage", label: "Voltage", minWidth: 120, align: "center" },
+  { id: "locDesc", label: "Location", minWidth: 120, align: "center" },
+  { id: "timestamp", label: "Timestamp", minWidth: 230, align: "center" },
 ];
 
 const AllRecords = ({ rows }) => {
@@ -22,12 +22,23 @@ const AllRecords = ({ rows }) => {
     <section className="all-records">
       <div className="title">Records</div>
 
-      <TableContainer sx={{ maxHeight: 780 }}>
+      <TableContainer
+        sx={{
+          borderRadius: 5,
+          boxShadow: 5,
+          maxHeight: 780,
+        }}
+      >
         <Table stickyHeader aria-label="sticky table">
-          <TableHead>
+          <TableHead sx={{ height: 70 }}>
             <TableRow>
               {columns.map((column) => (
                 <TableCell
+                  sx={{
+                    fontSize: 24,
+                    bgcolor: "#829399",
+                    color: "white",
+                  }}
                   key={column.id}
                   align={column.align}
                   style={{ minWidth: column.minWidth }}
@@ -48,7 +59,16 @@ const AllRecords = ({ rows }) => {
                 >
                   {columns.map((column) => {
                     return (
-                      <TableCell key={column.id + i} align={column.align}>
+                      <TableCell
+                        sx={{
+                          fontSize: 18,
+                          bgcolor: "#B7CAD0",
+                          color: "#000000",
+                          borderColor: "#545F66",
+                        }}
+                        key={column.id + i}
+                        align={column.align}
+                      >
                         {row[column.id] || "null"}
                       </TableCell>
                     );
