@@ -50,7 +50,9 @@ const SingleSensorRecord = ({ rows }) => {
     .filter((row) => {
       return row.mac == devMac;
     })
-    .sort();
+    .sort((a, b) => {
+      return a.Desc - b.Desc;
+    });
 
   const row =
     filterRows.length == 0
@@ -104,7 +106,7 @@ const SingleSensorRecord = ({ rows }) => {
       </TableContainer>
       <div className="records-container">
         <div className="all-records">
-          <h2>All Records</h2>
+          <h3>All Records</h3>
           <TableContainer sx={{ maxHeight: 600 }}>
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
@@ -165,13 +167,13 @@ const SingleSensorRecord = ({ rows }) => {
                       return row.Desc == filterRows[0]?.Desc;
                     })
                     .slice(0, 3)
-                    .map((row) => {
+                    .map((row, index) => {
                       return (
                         <TableRow
                           sx={{
                             "&:last-child td, &:last-child th": { border: 0 },
                           }}
-                          // NOTE:
+                          key={row.Desc + index}
                         >
                           {catRecordsColumns.map((col) => {
                             return (
@@ -202,12 +204,13 @@ const SingleSensorRecord = ({ rows }) => {
                       return row.Desc == filterRows[1]?.Desc;
                     })
                     .slice(0, 3)
-                    .map((row) => {
+                    .map((row, index) => {
                       return (
                         <TableRow
                           sx={{
                             "&:last-child td, &:last-child th": { border: 0 },
                           }}
+                          key={row.Desc + index}
                         >
                           {catRecordsColumns.map((col) => {
                             return (
@@ -238,12 +241,13 @@ const SingleSensorRecord = ({ rows }) => {
                       return row.Desc == filterRows[2]?.Desc;
                     })
                     .slice(0, 3)
-                    .map((row) => {
+                    .map((row, index) => {
                       return (
                         <TableRow
                           sx={{
                             "&:last-child td, &:last-child th": { border: 0 },
                           }}
+                          key={row.Desc + index}
                         >
                           {catRecordsColumns.map((col) => {
                             return (
