@@ -19,6 +19,17 @@ let formatData;
   formatData = await parseData();
 })();
 
+// Daily Update Local Records Data
+setInterval(async () => {
+  formatData = await parseData();
+  console.log(
+    `Daily update data at ${Date.now().toLocaleString("zh-TW", {
+      timeZone: "Asia/Taipei",
+      hour12: false,
+    })}`
+  );
+}, 1000 * 60 * 60 * 24);
+
 client.connect();
 
 client.query("LISTEN record_changes");
@@ -88,13 +99,13 @@ client.on("notification", (msg) => {
   formatData = [newPayload, ...tempData];
   console.log(newPayload);
 
-  
   io.emit("db-notify", newPayload);
 });
 
 io.on("disconnect", () => {
   console.log("A client disconnected");
 });
+
 app.get("/record/all", (req, res) => {
   try {
     const start = new Date();
@@ -103,6 +114,17 @@ app.get("/record/all", (req, res) => {
     console.log(`spend ${(end - start) / 1000}s`);
   } catch (error) {
     console.error(error);
+    res.status(500).send("Interval Server Error");
+  }
+});
+
+app.get("/location", async (req, res) => {
+  try {
+    const result = await client.query("SELECT * FROM locations");
+    console.log(result.rows);
+    res.json(result.rows);
+  } catch (error) {
+    console.error(e);
     res.status(500).send("Interval Server Error");
   }
 });
