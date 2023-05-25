@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./App.css";
 import Header from "./pages/Header/Header";
+import Location from "./pages/Location/Location";
 import AllRecords from "./pages/AllRecords/AllRecords";
 import SharedLayout from "./pages/SharedLayout";
 import SingleSensorRecord from "./pages/SingleSensorRecord/SingleSensorRecord";
@@ -13,8 +14,15 @@ const fetchRecords = async () => {
   return data;
 };
 
+const fetchLocations = async () => {
+  const response = await fetch("http://chiu.hopto.org:8963/location");
+  const data = await response.json();
+  return data;
+};
+
 function App() {
   const [rows, setRows] = useState([]);
+  const [locationList, setLocationList] = useState([]);
 
   useEffect(() => {
     const socket = io("http://chiu.hopto.org:8080");
@@ -37,6 +45,14 @@ function App() {
     fetchRecords()
       .then((data) => {
         setRows(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    fetchLocations()
+      .then((data) => {
+        setLocationList(data);
       })
       .catch((error) => {
         console.error(error);
@@ -75,6 +91,18 @@ function App() {
                 rows={rows}
                 setRows={setRows}
                 fetchRecords={fetchRecords}
+                locationList={locationList}
+              />
+            }
+          />
+
+          <Route
+            path="/location"
+            element={
+              <Location
+                locationList={locationList}
+                setLocationList={setLocationList}
+                fetchLocations={fetchLocations}
               />
             }
           />

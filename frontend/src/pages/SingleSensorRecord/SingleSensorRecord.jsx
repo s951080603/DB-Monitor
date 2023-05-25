@@ -61,18 +61,8 @@ const catRecordsColumns = [
   { id: "timestamp", label: "Timestamp", align: "center" },
 ];
 
-const SingleSensorRecord = ({ rows, setRows, fetchRecords }) => {
-  const [locationList, setLocationList] = useState([]);
+const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
   // const [filterRows, setFilterRows] = useState([])
-
-  useEffect(() => {
-    fetch("http://chiu.hopto.org:8963/location")
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => setLocationList(data))
-      .catch((err) => console.error(err));
-  }, []);
 
   const { devEUI } = useParams();
 
@@ -138,7 +128,10 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords }) => {
   };
   return (
     <section className="sensor-records">
-      <TableContainer sx={{ marginTrim: 10, boxShadow: 5 }} component={Paper}>
+      <TableContainer
+        sx={{ marginTrim: 10, borderRadius: 5, boxShadow: 5, paddingBottom: 2 }}
+        component={Paper}
+      >
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
@@ -183,9 +176,11 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords }) => {
       </TableContainer>
 
       <div className="records-container">
-        <div className="all-records">
+        <div className="single-sensor-all-records">
           <h3>All Records</h3>
-          <TableContainer sx={{ maxHeight: 600 }}>
+          <TableContainer
+            sx={{ maxHeight: 600, borderRadius: 5, boxShadow: 5 }}
+          >
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
                 <TableRow>
@@ -233,7 +228,10 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords }) => {
                   ?.Desc
               }
             </h3>
-            <TableContainer component={Paper}>
+            <TableContainer
+              sx={{ borderRadius: 5, boxShadow: 5 }}
+              component={Paper}
+            >
               <Table sx={{}} aria-label="simple table">
                 <TableHead>
                   <TableRow>
@@ -282,7 +280,10 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords }) => {
 
           <div className="records">
             <h3>Temperature</h3>
-            <TableContainer component={Paper}>
+            <TableContainer
+              sx={{ borderRadius: 5, boxShadow: 5 }}
+              component={Paper}
+            >
               <Table sx={{}} aria-label="simple table">
                 <TableBody>
                   {filterRows
@@ -320,7 +321,10 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords }) => {
 
           <div className="records">
             <h3>Relative Humidity</h3>
-            <TableContainer component={Paper}>
+            <TableContainer
+              sx={{ borderRadius: 5, boxShadow: 5 }}
+              component={Paper}
+            >
               <Table sx={{}} aria-label="simple table">
                 <TableBody>
                   {filterRows
