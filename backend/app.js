@@ -21,24 +21,16 @@ const io = socketIo(server, {
 
 let formatData;
 
-(async () => {
-  formatData = await parseData(
-    'SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations."locDesc" \
-  FROM RegistedSnrs \
-  INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid \
-  INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid\
-  ORDER BY Records."timestamp" DESC LIMIT 100'
-  );
-})(); // Daily Update Local Records Data
-setInterval(async () => {
-  formatData = await parseData();
-  console.log(
-    `Daily update data at ${new Date(Date.now()).toLocaleString("zh-TW", {
-      timeZone: "Asia/Taipei",
-      hour12: false,
-    })}`
-  );
-}, 1000 * 60 * 60 * 24);
+// Daily Update Local Records Data
+// setInterval(async () => {
+//   formatData = await parseData();
+//   console.log(
+//     `Daily update data at ${new Date(Date.now()).toLocaleString("zh-TW", {
+//       timeZone: "Asia/Taipei",
+//       hour12: false,
+//     })}`
+//   );
+// }, 1000 * 60 * 60 * 24);
 
 client.connect();
 
@@ -110,9 +102,17 @@ io.on("disconnect", () => {
   console.log("A client disconnected");
 });
 
-app.get("/record/all", (req, res) => {
+app.get("/record/all", async (req, res) => {
   try {
     const start = new Date();
+
+    formatData = await parseData(
+      'SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations."locDesc" \
+      FROM RegistedSnrs \
+      INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid \
+      INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid\
+      ORDER BY Records."timestamp" DESC LIMIT 100'
+    );
 
     res.json(formatData);
     const end = new Date();
@@ -123,14 +123,13 @@ app.get("/record/all", (req, res) => {
   }
 });
 
-app.get("/record/:devEUI", (req, res) => {
+app.get("/record/:devEUI", async (req, res) => {
   try {
     const devEUI = req.params.devEUI;
-    (async () => {
-      formatData = await parseData(
-        `select * from records where sensorid in (select sensorid from registedsnrs where mac = '${devEUI}') order by "timestamp" desc`
-      );
-    })();
+    formatData = await parseData(
+      `select * from records where sensorid in (select sensorid from registedsnrs where mac = '${devEUI}') order by "timestamp" desc`
+    );
+
     res.json(formatData);
   } catch (error) {
     console.error(error);
