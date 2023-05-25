@@ -4,8 +4,6 @@ import "./style.css";
 import { useNavigate } from "react-router-dom";
 
 import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import ListSubheader from "@mui/material/ListSubheader";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 
@@ -31,7 +29,6 @@ const Header = () => {
   return (
     <header className="header">
       <div className="logo">DB MONITOR</div>
-
       <FormControl sx={{ m: 1, minWidth: 120 }}>
         <InputLabel htmlFor="grouped-native-select">Sensor</InputLabel>
         <Select

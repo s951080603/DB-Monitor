@@ -32,4 +32,17 @@
 }
 .category-records .records h3 {
   padding: 10px;
+}
+
+.location-container {
+  width: 400px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
 }/*# sourceMappingURL=style.css.map */

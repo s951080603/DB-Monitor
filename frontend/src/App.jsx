@@ -34,11 +34,9 @@ function App() {
   }, []);
 
   useEffect(() => {
-    let start = new Date();
     fetchRecords()
       .then((data) => {
         setRows(data);
-        let end = new Date();
       })
       .catch((error) => {
         console.error(error);

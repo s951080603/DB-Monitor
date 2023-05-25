@@ -1,4 +1,4 @@
-export const pm25SensorList = [
+export const tvocSensorList = [
   "00137A100002033A",
   "00137A100002033B",
   "00137A100002033C",
@@ -8,7 +8,7 @@ export const pm25SensorList = [
   "00137A1000020340",
   "00137A1000020341",
 ];
-export const tvocSensorList = [
+export const pm25SensorList = [
   "00137A1000020342",
   "00137A1000020343",
   "00137A1000020344",
