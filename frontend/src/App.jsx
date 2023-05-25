@@ -47,10 +47,37 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<SharedLayout />}>
-          <Route index element={<AllRecords rows={rows} />} />
-          <Route path="/all" element={<AllRecords rows={rows} />} />
+          <Route
+            index
+            element={
+              <AllRecords
+                rows={rows}
+                setRows={setRows}
+                fetchRecords={fetchRecords}
+              />
+            }
+          />
+          <Route
+            path="/all"
+            element={
+              <AllRecords
+                rows={rows}
+                setRows={setRows}
+                fetchRecords={fetchRecords}
+              />
+            }
+          />
 
-          <Route path="/:devEUI" element={<SingleSensorRecord rows={rows} />} />
+          <Route
+            path="/:devEUI"
+            element={
+              <SingleSensorRecord
+                rows={rows}
+                setRows={setRows}
+                fetchRecords={fetchRecords}
+              />
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -17,15 +17,6 @@ const Header = () => {
     navigate(`/${devEUI.toLowerCase()}`);
   };
 
-  const [currentTime, setCurrentTime] = useState(
-    new Date(Date.now()).toLocaleString()
-  );
-  useEffect(() => {
-    const timeId = setInterval(() => {
-      setCurrentTime(new Date(Date.now()).toLocaleString());
-    }, 1000);
-    return () => clearInterval(timeId);
-  }, []);
   return (
     <header className="header">
       <div className="logo">DB MONITOR</div>
@@ -62,8 +53,6 @@ const Header = () => {
           </optgroup>
         </Select>
       </FormControl>
-
-      <div className="current-time">{currentTime}</div>
     </header>
   );
 };

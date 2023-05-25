@@ -20,17 +20,6 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 
-let locationList;
-
-(async function loadLocation() {
-  locationList = await fetch("http://chiu.hopto.org:8963/location")
-    .then(async (res) => {
-      const data = await res.json();
-      return data;
-    })
-    .catch((err) => console.error(err));
-})();
-
 const style = {
   position: "absolute",
   top: "50%",
@@ -72,8 +61,19 @@ const catRecordsColumns = [
   { id: "timestamp", label: "Timestamp", align: "center" },
 ];
 
-const SingleSensorRecord = ({ rows }) => {
-  const singleSensorContext = createContext();
+const SingleSensorRecord = ({ rows, setRows, fetchRecords }) => {
+  const [locationList, setLocationList] = useState([]);
+  // const [filterRows, setFilterRows] = useState([])
+
+  useEffect(() => {
+    fetch("http://chiu.hopto.org:8963/location")
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => setLocationList(data))
+      .catch((err) => console.error(err));
+  }, []);
+
   const { devEUI } = useParams();
 
   const tempDevEUI = devEUI;
@@ -121,10 +121,19 @@ const SingleSensorRecord = ({ rows }) => {
     })
       .then((res) => {
         console.log(res);
+        // update rows
+        fetchRecords()
+          .then((data) => {
+            setRows(data);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
       })
       .catch((error) => {
         console.log(error);
       });
+
     setOpen(false);
   };
   return (
