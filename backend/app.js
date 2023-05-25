@@ -127,7 +127,12 @@ app.get("/record/:devEUI", async (req, res) => {
   try {
     const devEUI = req.params.devEUI;
     formatData = await parseData(
-      `select * from records where sensorid in (select sensorid from registedsnrs where mac = '${devEUI}') order by "timestamp" desc`
+      `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations."locDesc" \
+      FROM RegistedSnrs \
+      INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid \
+      INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid\
+      WHERE RegistedSnrs.sensorid IN (select sensorid from registedsnrs where mac = '${devEUI}')
+      ORDER BY Records."timestamp" DESC`
     );
 
     res.json(formatData);
