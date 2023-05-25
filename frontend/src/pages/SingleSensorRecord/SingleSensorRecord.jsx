@@ -104,14 +104,6 @@ const SingleSensorRecord = ({ rows }) => {
   const handleClose = () => setOpen(false);
   const handleChange = async (e) => {
     setLocation(e.target.value);
-
-    const newLocationId = locationList.find(
-      (loc) => loc.locDesc === location
-    )?.locid;
-    const data = {
-      locid: newLocationId,
-    };
-    console.log(JSON.stringify(data));
   };
   const handleSubmit = () => {
     const newLocationId = locationList.find(
