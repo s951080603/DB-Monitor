@@ -107,7 +107,7 @@ app.get("/record/all", async (req, res) => {
     const start = new Date();
 
     formatData = await parseData(
-      'SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations."locDesc" \
+      'SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*,locations.locid, locations."locDesc" \
       FROM RegistedSnrs \
       INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid \
       INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid\
