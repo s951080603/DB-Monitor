@@ -111,7 +111,7 @@ app.get("/record/all", async (req, res) => {
       FROM RegistedSnrs \
       INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid \
       INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid\
-      ORDER BY Records."timestamp" DESC LIMIT 100'
+      ORDER BY Records."timestamp" DESC LIMIT 1000'
     );
 
     res.json(formatData);
@@ -127,7 +127,7 @@ app.get("/record/:devEUI", async (req, res) => {
   try {
     const devEUI = req.params.devEUI;
     formatData = await parseData(
-      `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations."locDesc" \
+      `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*,locations.locid , locations."locDesc" \
       FROM RegistedSnrs \
       INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid \
       INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid\
@@ -144,7 +144,7 @@ app.get("/record/:devEUI", async (req, res) => {
 
 app.get("/location", async (req, res) => {
   try {
-    const result = await client.query("SELECT * FROM locations");
+    const result = await client.query("SELECT * FROM locations ORDER BY locid");
     console.log(result.rows);
     res.json(result.rows);
   } catch (error) {
@@ -159,7 +159,7 @@ app.post("/location", async (req, res) => {
     const { locid, custid, bldno, floor, locDesc } = req.body;
 
     await client.query(
-      `INSERT INTO locations (locid, custid, bldno, floor, locDesc) VALUES (${locid}, ${custid}, ${bldno}, ${floor}, ${locDesc})`
+      `INSERT INTO locations (locid, custid, bldno, floor, "locDesc") VALUES (${locid}, '${custid}', '${bldno}', ${floor}, '${locDesc}')`
     );
 
     // Send a response
