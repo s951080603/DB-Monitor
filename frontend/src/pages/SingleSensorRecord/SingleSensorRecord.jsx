@@ -129,7 +129,13 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
   return (
     <section className="sensor-records">
       <TableContainer
-        sx={{ marginTrim: 10, borderRadius: 5, boxShadow: 5, paddingBottom: 2 }}
+        sx={{
+          marginTop: 5,
+          marginTrim: 10,
+          borderRadius: 5,
+          boxShadow: 5,
+          paddingBottom: 2,
+        }}
         component={Paper}
       >
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -144,6 +150,7 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
                       <IconButton
                         className="edit-btn"
                         aria-label="edit"
+                        size="small"
                         onClick={handleOpen}
                       >
                         <AiOutlineEdit />

@@ -7,6 +7,7 @@ import AllRecords from "./pages/AllRecords/AllRecords";
 import SharedLayout from "./pages/SharedLayout";
 import SingleSensorRecord from "./pages/SingleSensorRecord/SingleSensorRecord";
 import io from "socket.io-client";
+import Dashboard from "./pages/Dashboard/Dashboard";
 
 const fetchRecords = async () => {
   const response = await fetch("http://chiu.hopto.org:8963/record/all");
@@ -62,7 +63,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<SharedLayout />}>
+        <Route path="/" element={<SharedLayout locationList={locationList} />}>
           <Route
             index
             element={
@@ -105,6 +106,15 @@ function App() {
                 fetchLocations={fetchLocations}
               />
             }
+          />
+
+          <Route
+            path="/dashboard"
+            element={<Dashboard locationList={locationList} rows={rows} />}
+          />
+          <Route
+            path="/dashboard/:location"
+            element={<Dashboard locationList={locationList} rows={rows} />}
           />
         </Route>
       </Routes>

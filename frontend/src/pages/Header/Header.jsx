@@ -16,15 +16,20 @@ import Newspaper from "@mui/icons-material/Newspaper";
 import InsertChart from "@mui/icons-material/InsertChart";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 
-const Header = () => {
-  const [devEUI, setDevEUI] = useState("ALL");
+const Header = ({ locationList }) => {
+  // const [devEUI, setDevEUI] = useState("ALL");
+  // const [location, setLocation] = useState("70734R");
   const [value, setValue] = useState(0);
   const navigate = useNavigate();
 
-  const handleSelectChange = (event) => {
+  const handleSensorSelectChange = (event) => {
     const devEUI = event.target.value;
-    setDevEUI(devEUI);
     navigate(`/${devEUI.toLowerCase()}`);
+  };
+
+  const handleLocationSelectChange = (event) => {
+    const location = event.target.value || "70734R";
+    navigate(`/dashboard/${location}`);
   };
 
   return (
@@ -38,7 +43,7 @@ const Header = () => {
             defaultValue=""
             id="grouped-native-select"
             label="Grouping"
-            onChange={handleSelectChange}
+            onChange={handleSensorSelectChange}
             sx={{ fontSize: 24, color: "#545f66" }}
           >
             <option style={{ textAlign: "center" }} label="All" value="All">
@@ -58,6 +63,34 @@ const Header = () => {
                 return (
                   <option key={mac} value={mac}>
                     {mac}
+                  </option>
+                );
+              })}
+            </optgroup>
+          </Select>
+        </FormControl>
+      ) : null}
+
+      {value == 2 ? (
+        <FormControl sx={{ m: 1, minWidth: 120 }}>
+          <InputLabel htmlFor="grouped-native-select">Location</InputLabel>
+          <Select
+            native
+            defaultValue=""
+            id="grouped-native-select"
+            label="Grouping"
+            onChange={handleLocationSelectChange}
+            sx={{ fontSize: 24, color: "#545f66" }}
+          >
+            <optgroup label="Location">
+              {locationList.map((location) => {
+                return (
+                  <option
+                    style={{ textAlign: "center" }}
+                    key={location.locDesc}
+                    value={location.locDesc}
+                  >
+                    {location.locDesc}
                   </option>
                 );
               })}
