@@ -22,8 +22,6 @@ const Location = ({ locationList, setLocationList, fetchLocations }) => {
       jsonForm[key] = value;
     });
 
-    console.log(jsonForm);
-
     fetch("http://chiu.hopto.org:8963/location", {
       method: "POST",
       body: JSON.stringify(jsonForm),
@@ -32,7 +30,6 @@ const Location = ({ locationList, setLocationList, fetchLocations }) => {
       },
     })
       .then((res) => {
-        console.log(res);
         fetchLocations()
           .then((data) => {
             setLocationList(data);

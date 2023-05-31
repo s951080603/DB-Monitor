@@ -1,10 +1,14 @@
 import { Outlet } from "react-router-dom";
 import Header from "./Header/Header";
 
-const SharedLayout = ({ locationList }) => {
+const SharedLayout = ({ rows, locationList, installedLocations }) => {
   return (
     <>
-      <Header locationList={locationList} />
+      <Header
+        rows={rows}
+        locationList={locationList}
+        installedLocations={installedLocations}
+      />
       <Outlet />
     </>
   );

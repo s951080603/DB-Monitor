@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { pm25SensorList, tvocSensorList } from "../../data";
 import "./style.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AiOutlineLineChart } from "react-icons/ai";
 
 import InputLabel from "@mui/material/InputLabel";
@@ -16,9 +16,10 @@ import Newspaper from "@mui/icons-material/Newspaper";
 import InsertChart from "@mui/icons-material/InsertChart";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 
-const Header = ({ locationList }) => {
+const Header = ({ rows, locationList, installedLocations }) => {
   // const [devEUI, setDevEUI] = useState("ALL");
   // const [location, setLocation] = useState("70734R");
+
   const [value, setValue] = useState(0);
   const navigate = useNavigate();
 
@@ -28,7 +29,7 @@ const Header = ({ locationList }) => {
   };
 
   const handleLocationSelectChange = (event) => {
-    const location = event.target.value || "70734R";
+    const location = event.target.value;
     navigate(`/dashboard/${location}`);
   };
 
@@ -44,7 +45,7 @@ const Header = ({ locationList }) => {
             id="grouped-native-select"
             label="Grouping"
             onChange={handleSensorSelectChange}
-            sx={{ fontSize: 24, color: "#545f66" }}
+            sx={{ fontSize: 20, color: "#545f66" }}
           >
             <option style={{ textAlign: "center" }} label="All" value="All">
               ALL
@@ -52,7 +53,7 @@ const Header = ({ locationList }) => {
             <optgroup label="PM2.5">
               {pm25SensorList.map((mac) => {
                 return (
-                  <option key={mac} value={mac}>
+                  <option style={{ textAlign: "center" }} key={mac} value={mac}>
                     {mac}
                   </option>
                 );
@@ -61,7 +62,7 @@ const Header = ({ locationList }) => {
             <optgroup label="TVOC">
               {tvocSensorList.map((mac) => {
                 return (
-                  <option key={mac} value={mac}>
+                  <option style={{ textAlign: "center" }} key={mac} value={mac}>
                     {mac}
                   </option>
                 );
@@ -80,20 +81,24 @@ const Header = ({ locationList }) => {
             id="grouped-native-select"
             label="Grouping"
             onChange={handleLocationSelectChange}
-            sx={{ fontSize: 24, color: "#545f66" }}
+            sx={{ fontSize: 20, color: "#545f66" }}
           >
             <optgroup label="Location">
-              {locationList.map((location) => {
-                return (
-                  <option
-                    style={{ textAlign: "center" }}
-                    key={location.locDesc}
-                    value={location.locDesc}
-                  >
-                    {location.locDesc}
-                  </option>
-                );
-              })}
+              {locationList
+                .filter((location) =>
+                  installedLocations.includes(location.locid)
+                )
+                .map((location) => {
+                  return (
+                    <option
+                      style={{ textAlign: "center" }}
+                      key={location.locid}
+                      value={location.locid}
+                    >
+                      {location.locDesc}
+                    </option>
+                  );
+                })}
             </optgroup>
           </Select>
         </FormControl>

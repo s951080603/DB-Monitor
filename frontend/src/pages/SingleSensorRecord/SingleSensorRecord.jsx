@@ -88,7 +88,7 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
             filterRows[2].Desc
           }`,
         };
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState(1);
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -97,7 +97,7 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
   };
   const handleSubmit = () => {
     const newLocationId = locationList.find(
-      (loc) => loc.locDesc === location
+      (loc) => loc.locid === location
     )?.locid;
     const data = {
       locid: newLocationId,
@@ -397,13 +397,13 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
               <Select
                 labelId="demo-simple-select-standard-label"
                 id="demo-simple-select-standard"
-                value={location || row.locDesc}
+                value={location}
                 label="location"
                 onChange={handleChange}
               >
                 {locationList.map((location) => {
                   return (
-                    <MenuItem value={location.locDesc} key={location.locDesc}>
+                    <MenuItem value={location.locid} key={location.locid}>
                       {location.locDesc}
                     </MenuItem>
                   );

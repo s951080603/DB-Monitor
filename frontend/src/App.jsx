@@ -24,9 +24,26 @@ const fetchLocations = async () => {
 function App() {
   const [rows, setRows] = useState([]);
   const [locationList, setLocationList] = useState([]);
+  const [installedLocations, setInstalledLocations] = useState([]);
 
   useEffect(() => {
     const socket = io("http://chiu.hopto.org:8080");
+    console.log("socket connect");
+    fetchRecords()
+      .then((data) => {
+        setRows(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+    fetchLocations()
+      .then((data) => {
+        setLocationList(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
 
     socket.on("db-notify", (data) => {
       setRows((currentRows) => {
@@ -43,27 +60,22 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetchRecords()
-      .then((data) => {
-        setRows(data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-
-    fetchLocations()
-      .then((data) => {
-        setLocationList(data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, []);
-
+    setInstalledLocations([...new Set(rows.map((row) => row.locid))].sort());
+  }, [rows]);
+  console.log("App.js re-render");
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<SharedLayout locationList={locationList} />}>
+        <Route
+          path="/"
+          element={
+            <SharedLayout
+              rows={rows}
+              locationList={locationList}
+              installedLocations={installedLocations}
+            />
+          }
+        >
           <Route
             index
             element={
@@ -110,7 +122,13 @@ function App() {
 
           <Route
             path="/dashboard"
-            element={<Dashboard locationList={locationList} rows={rows} />}
+            element={
+              <Dashboard
+                locationList={locationList}
+                rows={rows}
+                installedLocations={installedLocations}
+              />
+            }
           />
           <Route
             path="/dashboard/:location"

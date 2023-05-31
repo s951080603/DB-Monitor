@@ -18,6 +18,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
+import { useEffect, useState } from "react";
 
 const topColumns = [
   {
@@ -67,16 +68,16 @@ ChartJS.register(
   Legend
 );
 
-export const options = {
+const options = {
   responsive: true,
   plugins: {
     legend: {
       position: "top",
     },
-    title: {
-      display: true,
-      text: "Chart.js Line Chart",
-    },
+    // title: {
+    //   display: true,
+    //   text: "Chart.js Line Chart",
+    // },
   },
 };
 
@@ -84,39 +85,84 @@ const labels = ["January", "February", "March", "April", "May", "June", "July"];
 
 const fakeData = [100, 200, 300, 200, 400, 500, 100];
 const fakeData2 = [300, 200, 500, 100, 300, 200, 100];
-const data = {
-  labels,
-  datasets: [
-    {
-      label: "Dataset 1",
-      data: fakeData,
-      borderColor: "rgb(255, 99, 132)",
-      backgroundColor: "rgba(255, 99, 132, 0.5)",
-    },
-    {
-      label: "Dataset 2",
-      data: fakeData2,
-      borderColor: "rgb(53, 162, 235)",
-      backgroundColor: "rgba(53, 162, 235, 0.5)",
-    },
-  ],
-};
 
-const Dashboard = ({ locationList, rows }) => {
-  let { location } = useParams();
-  if (!location) {
-    location = "70734R";
-  }
-  console.log(location);
+const Dashboard = ({ locationList, rows, installedLocations }) => {
+  //NOTE: 待修正 Humidity 和 Temperature 的 Line Chart x-axis
+  const [pm25Rows, setPm25Rows] = useState([]);
+  const [tvocRows, setTvocRows] = useState([]);
+  const [humidityRows, setHumidityRows] = useState([]);
+  const [temperatureRows, setTemperatureRows] = useState([]);
+  const [filterRows, setFilterRows] = useState([]);
+  let { location = installedLocations[0] } = useParams();
+  // locationList.map((loc)=> {return {}} )
 
-  const filterRows = rows.filter((row) => {
-    return row.locDesc == location;
-  });
+  // const locId = locationList.find((loc) => loc.locDesc == location)?.locid;
 
-  const latestDataMac1 = filterRows.find((row) => row.Desc == "PM2.5") || [];
-  const latestDataMac2 = filterRows.find((row) => row.Desc == "TVOC") || [];
-  console.log(latestDataMac1);
-  console.log(latestDataMac2);
+  useEffect(() => {
+    setFilterRows((currentFilterRows) => {
+      console.log("Dashboard initial render");
+      const newFilterRows = rows.filter((row) => row.locid == location);
+
+      setPm25Rows(newFilterRows.filter((row) => row.Desc == "PM2.5"));
+      setTvocRows(newFilterRows.filter((row) => row.Desc == "TVOC"));
+      setHumidityRows(
+        newFilterRows.filter((row) => row.Desc == "Relative Humidity")
+      );
+      setTemperatureRows(
+        newFilterRows.filter((row) => row.Desc == "Temperature")
+      );
+
+      return newFilterRows;
+    });
+  }, []);
+
+  useEffect(() => {
+    setFilterRows((currentFilterRows) => {
+      const newFilterRows = rows.filter((row) => row.locid == location);
+      setPm25Rows(newFilterRows.filter((row) => row.Desc == "PM2.5"));
+      setTvocRows(newFilterRows.filter((row) => row.Desc == "TVOC"));
+      setHumidityRows(
+        newFilterRows.filter((row) => row.Desc == "Relative Humidity")
+      );
+      setTemperatureRows(
+        newFilterRows.filter((row) => row.Desc == "Temperature")
+      );
+
+      return newFilterRows;
+    });
+  }, [location, rows]);
+  const latestDataPM25 = pm25Rows[0] || [];
+  const latestDataTVOC = tvocRows[0] || [];
+  // const data = {
+  //   labels: pm25Rows
+  //     .slice(0, 7)
+  //     .reverse()
+  //     .map((row) => row.timestamp.substring(10, 15)),
+  //   datasets: [
+  //     {
+  //       label: "Dataset 1",
+  //       data: pm25Rows
+  //         .slice(0, 7)
+  //         .reverse()
+  //         .map((row) => {
+  //           return row.value;
+  //         }),
+  //       borderColor: "rgb(255, 99, 132)",
+  //       backgroundColor: "rgba(255, 99, 132, 0.5)",
+  //     },
+  //     {
+  //       label: "Dataset 2",
+  //       data: pm25Rows
+  //         .slice(0, 7)
+  //         .reverse()
+  //         .map((row) => row.value),
+  //       borderColor: "rgb(53, 162, 235)",
+  //       backgroundColor: "rgba(53, 162, 235, 0.5)",
+  //     },
+  //   ],
+  // };
+  console.log("Dashboard re-render");
+
   return (
     <section className="dashboard">
       <TableContainer
@@ -149,7 +195,7 @@ const Dashboard = ({ locationList, rows }) => {
               {topColumns.map((row) => {
                 return (
                   <TableCell width={row.minWidth} align="center" key={row.id}>
-                    {latestDataMac1[row.key] || "尚無資料"}
+                    {latestDataPM25[row.key] || "尚無資料"}
                   </TableCell>
                 );
               })}
@@ -165,7 +211,7 @@ const Dashboard = ({ locationList, rows }) => {
               {topColumns.map((row) => {
                 return (
                   <TableCell align="center" key={row.id}>
-                    {latestDataMac2[row.key] || null}
+                    {latestDataTVOC[row.key] || "尚無資料"}
                   </TableCell>
                 );
               })}
@@ -173,12 +219,253 @@ const Dashboard = ({ locationList, rows }) => {
           </TableBody>
         </Table>
       </TableContainer>
+
       <div className="chart-container">
         <div className="chart">
-          <Line options={options} data={data} />
+          <Line
+            options={options}
+            data={{
+              labels: tvocRows
+                .slice(0, 12)
+                .reverse()
+                .map((row) => row.timestamp.substring(10, 15)),
+              datasets: [
+                {
+                  label: "TVOC",
+                  data: tvocRows
+                    .slice(0, 12)
+                    .reverse()
+                    .map((row) => {
+                      return row.value;
+                    }),
+                  borderColor: "rgb(33, 192, 166)",
+                  backgroundColor: "rgba(33, 192, 166,.5)",
+                },
+              ],
+            }}
+          />
         </div>
         <div className="chart">
-          <Line options={options} data={data} />
+          <Line
+            options={options}
+            data={{
+              labels: pm25Rows
+                .slice(0, 12)
+                .reverse()
+                .map((row) => row.timestamp.substring(10, 15)),
+              datasets: [
+                {
+                  label: "PM2.5",
+                  data: pm25Rows
+                    .slice(0, 12)
+                    .reverse()
+                    .map((row) => {
+                      return row.value;
+                    }),
+                  borderColor: "rgb(255, 180, 99)",
+                  backgroundColor: "rgba(255, 180, 99, 0.5)",
+                },
+              ],
+            }}
+          />
+        </div>
+        <div className="chart">
+          <Line
+            options={options}
+            data={{
+              labels: humidityRows
+                .filter((row) => row.mac == latestDataPM25.mac)
+                .slice(0, 12)
+                .reverse()
+                .map((row) => row.timestamp.substring(10, 15)),
+              datasets: [
+                {
+                  label: "Humidity from pm2.5",
+                  data: humidityRows
+                    .filter((row) => row.mac == latestDataPM25.mac)
+                    .slice(0, 12)
+                    .reverse()
+                    .map((row) => {
+                      return row.value;
+                    }),
+                  borderColor: "rgb(53, 162, 235)",
+                  backgroundColor: "rgba(53, 162, 235, 0.5)",
+                },
+                {
+                  label: "Humidity from TVOC",
+                  data: humidityRows
+                    .filter((row) => row.mac == latestDataTVOC.mac)
+                    .slice(0, 12)
+                    .reverse()
+                    .map((row) => {
+                      return row.value;
+                    }),
+                  borderColor: "rgb(8, 74, 118)",
+                  backgroundColor: "rgba(8, 74, 118, 0.5)",
+                },
+              ],
+            }}
+          />
+        </div>
+        <div className="chart">
+          <Line
+            options={options}
+            data={{
+              labels: temperatureRows
+                .slice(0, 12)
+                .reverse()
+                .map((row) => row.timestamp.substring(10, 15)),
+              datasets: [
+                {
+                  label: "Temperature from pm2.5",
+                  data: temperatureRows
+                    .filter((row) => row.mac == latestDataPM25.mac)
+                    .slice(0, 12)
+                    .reverse()
+                    .map((row) => {
+                      return row.value;
+                    }),
+                  borderColor: "rgb(255, 99, 132)",
+                  backgroundColor: "rgba(255, 99, 132, 0.5)",
+                },
+                {
+                  label: "Temperature from TVOC",
+                  data: temperatureRows
+                    .filter((row) => row.mac == latestDataTVOC.mac)
+                    .slice(0, 12)
+                    .reverse()
+                    .map((row) => {
+                      return row.value;
+                    }),
+                  borderColor: "rgb(177, 14, 49)",
+                  backgroundColor: "rgba(177, 14, 49, 0.5)",
+                },
+              ],
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="analyze-container">
+        <div className="table">
+          <h3>TVOC</h3>
+          <TableContainer
+            sx={{ maxHeight: "80%", borderRadius: 5, boxShadow: 5 }}
+          >
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center">Value</TableCell>
+                  <TableCell align="center">Timestamp</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {tvocRows?.map((row) => {
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      tabIndex={-1}
+                      key={row["timestamp"] + row["sensorid"]}
+                    >
+                      <TableCell align={"center"}>{row.value}</TableCell>
+                      <TableCell align={"center"}>{row.timestamp}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
+        <div className="table">
+          <h3>PM2.5</h3>
+          <TableContainer
+            sx={{ maxHeight: "80%", borderRadius: 5, boxShadow: 5 }}
+          >
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center">Value</TableCell>
+                  <TableCell align="center">Timestamp</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {pm25Rows?.map((row) => {
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      tabIndex={-1}
+                      key={row["timestamp"] + row["sensorid"]}
+                    >
+                      <TableCell align={"center"}>{row.value}</TableCell>
+                      <TableCell align={"center"}>{row.timestamp}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
+        <div className="table">
+          <h3>Relative Humidity</h3>
+          <TableContainer
+            sx={{ maxHeight: "80%", borderRadius: 5, boxShadow: 5 }}
+          >
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center">Value</TableCell>
+                  <TableCell align="center">Timestamp</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {humidityRows?.map((row) => {
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      tabIndex={-1}
+                      key={row["timestamp"] + row["sensorid"]}
+                    >
+                      <TableCell align={"center"}>{row.value}</TableCell>
+                      <TableCell align={"center"}>{row.timestamp}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
+        <div className="table">
+          <h3>Temperature</h3>
+          <TableContainer
+            sx={{ maxHeight: "80%", borderRadius: 5, boxShadow: 5 }}
+          >
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center">Value</TableCell>
+                  <TableCell align="center">Timestamp</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {temperatureRows?.map((row) => {
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      tabIndex={-1}
+                      key={row["timestamp"] + row["sensorid"]}
+                    >
+                      <TableCell align={"center"}>{row.value}</TableCell>
+                      <TableCell align={"center"}>{row.timestamp}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </div>
       </div>
     </section>

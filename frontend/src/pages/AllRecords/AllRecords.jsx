@@ -36,8 +36,7 @@ const AllRecords = ({ rows }) => {
                 <TableCell
                   sx={{
                     fontSize: 24,
-                    bgcolor: "#829399",
-                    color: "white",
+                    color: "#545f66",
                   }}
                   key={column.id}
                   align={column.align}
@@ -62,9 +61,6 @@ const AllRecords = ({ rows }) => {
                       <TableCell
                         sx={{
                           fontSize: 18,
-                          bgcolor: "#B7CAD0",
-                          color: "#000000",
-                          borderColor: "#545F66",
                         }}
                         key={column.id + i}
                         align={column.align}
