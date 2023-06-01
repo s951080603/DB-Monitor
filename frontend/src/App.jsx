@@ -8,6 +8,7 @@ import SharedLayout from "./pages/SharedLayout";
 import SingleSensorRecord from "./pages/SingleSensorRecord/SingleSensorRecord";
 import io from "socket.io-client";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import Home from "./pages/Home/Home";
 
 const fetchRecords = async () => {
   const response = await fetch("http://chiu.hopto.org:8963/record/all");
@@ -62,7 +63,6 @@ function App() {
   useEffect(() => {
     setInstalledLocations([...new Set(rows.map((row) => row.locid))].sort());
   }, [rows]);
-  console.log("App.js re-render");
   return (
     <BrowserRouter>
       <Routes>
@@ -78,13 +78,7 @@ function App() {
         >
           <Route
             index
-            element={
-              <AllRecords
-                rows={rows}
-                setRows={setRows}
-                fetchRecords={fetchRecords}
-              />
-            }
+            element={<Home rows={rows} locationList={locationList} />}
           />
           <Route
             path="/all"

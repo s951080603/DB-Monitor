@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { pm25SensorList, tvocSensorList } from "../../data";
 import "./style.css";
 import { useNavigate, useParams } from "react-router-dom";
-import { AiOutlineLineChart } from "react-icons/ai";
+import { AiOutlineHome, AiOutlineLineChart } from "react-icons/ai";
 
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
@@ -15,7 +15,7 @@ import RestoreIcon from "@mui/icons-material/Restore";
 import Newspaper from "@mui/icons-material/Newspaper";
 import InsertChart from "@mui/icons-material/InsertChart";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
-
+import HomeIcon from "@mui/icons-material/Home";
 const Header = ({ rows, locationList, installedLocations }) => {
   // const [devEUI, setDevEUI] = useState("ALL");
   // const [location, setLocation] = useState("70734R");
@@ -36,7 +36,7 @@ const Header = ({ rows, locationList, installedLocations }) => {
   return (
     <header className="header">
       <h1 className="logo">DB MONITOR</h1>
-      {value == 0 ? (
+      {value == 1 ? (
         <FormControl sx={{ m: 1, minWidth: 120 }}>
           <InputLabel htmlFor="grouped-native-select">Sensor</InputLabel>
           <Select
@@ -72,7 +72,7 @@ const Header = ({ rows, locationList, installedLocations }) => {
         </FormControl>
       ) : null}
 
-      {value == 2 ? (
+      {value == 3 ? (
         <FormControl sx={{ m: 1, minWidth: 120 }}>
           <InputLabel htmlFor="grouped-native-select">Location</InputLabel>
           <Select
@@ -113,10 +113,17 @@ const Header = ({ rows, locationList, installedLocations }) => {
           }}
         >
           <BottomNavigationAction
+            label="Home"
+            icon={<HomeIcon />}
+            onClick={() => {
+              navigate("/");
+            }}
+          />
+          <BottomNavigationAction
             label="Records"
             icon={<Newspaper />}
             onClick={() => {
-              navigate("/");
+              navigate("/all");
             }}
           />
           <BottomNavigationAction

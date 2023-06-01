@@ -65,7 +65,9 @@ const AllRecords = ({ rows }) => {
                         key={column.id + i}
                         align={column.align}
                       >
-                        {row[column.id] || "null"}
+                        {column.id == "value"
+                          ? row[column.id] + " " + row.unit
+                          : row[column.id] || "尚無資料"}
                       </TableCell>
                     );
                   })}

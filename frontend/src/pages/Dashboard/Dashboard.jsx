@@ -7,9 +7,10 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { useParams } from "react-router-dom";
+import "chartjs-adapter-moment";
 import {
   Chart as ChartJS,
-  CategoryScale,
+  TimeScale,
   LinearScale,
   PointElement,
   LineElement,
@@ -59,7 +60,7 @@ const topColumns = [
 ];
 
 ChartJS.register(
-  CategoryScale,
+  TimeScale,
   LinearScale,
   PointElement,
   LineElement,
@@ -79,12 +80,14 @@ const options = {
     //   text: "Chart.js Line Chart",
     // },
   },
+  scales: {
+    x: {
+      type: "time",
+      min: Date.now() - 8 * 60 * 60 * 1000,
+      max: Date.now(),
+    },
+  },
 };
-
-const labels = ["January", "February", "March", "April", "May", "June", "July"];
-
-const fakeData = [100, 200, 300, 200, 400, 500, 100];
-const fakeData2 = [300, 200, 500, 100, 300, 200, 100];
 
 const Dashboard = ({ locationList, rows, installedLocations }) => {
   //NOTE: 待修正 Humidity 和 Temperature 的 Line Chart x-axis
@@ -92,52 +95,38 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
   const [tvocRows, setTvocRows] = useState([]);
   const [humidityRows, setHumidityRows] = useState([]);
   const [temperatureRows, setTemperatureRows] = useState([]);
-  const [filterRows, setFilterRows] = useState([]);
+  // const [filterRows, setFilterRows] = useState([]);
+
+  const [latestDataPM25, setLatestDataPM25] = useState(null);
+  const [latestDataTVOC, setLatestDataTVOC] = useState(null);
   let { location = installedLocations[0] } = useParams();
   // locationList.map((loc)=> {return {}} )
 
   // const locId = locationList.find((loc) => loc.locDesc == location)?.locid;
-
+  const filterRows = rows.filter((row) => row.locid == location);
   useEffect(() => {
-    setFilterRows((currentFilterRows) => {
-      console.log("Dashboard initial render");
-      const newFilterRows = rows.filter((row) => row.locid == location);
-
-      setPm25Rows(newFilterRows.filter((row) => row.Desc == "PM2.5"));
-      setTvocRows(newFilterRows.filter((row) => row.Desc == "TVOC"));
-      setHumidityRows(
-        newFilterRows.filter((row) => row.Desc == "Relative Humidity")
-      );
-      setTemperatureRows(
-        newFilterRows.filter((row) => row.Desc == "Temperature")
-      );
-
-      return newFilterRows;
+    setPm25Rows(() => {
+      const newPm25Rows = filterRows.filter((row) => row.Desc == "PM2.5");
+      setLatestDataPM25(newPm25Rows[0]);
+      return newPm25Rows;
     });
-  }, []);
+    setTvocRows(() => {
+      const newTvocRows = filterRows.filter((row) => row.Desc == "TVOC");
+      setLatestDataTVOC(newTvocRows[0]);
 
-  useEffect(() => {
-    setFilterRows((currentFilterRows) => {
-      const newFilterRows = rows.filter((row) => row.locid == location);
-      setPm25Rows(newFilterRows.filter((row) => row.Desc == "PM2.5"));
-      setTvocRows(newFilterRows.filter((row) => row.Desc == "TVOC"));
-      setHumidityRows(
-        newFilterRows.filter((row) => row.Desc == "Relative Humidity")
-      );
-      setTemperatureRows(
-        newFilterRows.filter((row) => row.Desc == "Temperature")
-      );
-
-      return newFilterRows;
+      return newTvocRows;
     });
+    setHumidityRows(
+      filterRows.filter((row) => row.Desc == "Relative Humidity")
+    );
+    setTemperatureRows(filterRows.filter((row) => row.Desc == "Temperature"));
   }, [location, rows]);
-  const latestDataPM25 = pm25Rows[0] || [];
-  const latestDataTVOC = tvocRows[0] || [];
+
   // const data = {
   //   labels: pm25Rows
   //     .slice(0, 7)
   //     .reverse()
-  //     .map((row) => row.timestamp.substring(10, 15)),
+  //     .map((row) => row.timestamp),
   //   datasets: [
   //     {
   //       label: "Dataset 1",
@@ -161,7 +150,6 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
   //     },
   //   ],
   // };
-  console.log("Dashboard re-render");
 
   return (
     <section className="dashboard">
@@ -190,17 +178,6 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
           </TableHead>
           <TableBody>
             <TableRow
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-            >
-              {topColumns.map((row) => {
-                return (
-                  <TableCell width={row.minWidth} align="center" key={row.id}>
-                    {latestDataPM25[row.key] || "尚無資料"}
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-            <TableRow
               sx={{
                 "&:last-child td, &:last-child th": {
                   border: 0,
@@ -211,7 +188,18 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
               {topColumns.map((row) => {
                 return (
                   <TableCell align="center" key={row.id}>
-                    {latestDataTVOC[row.key] || "尚無資料"}
+                    {latestDataTVOC ? latestDataTVOC[row.key] : "尚無資料"}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+            <TableRow
+              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+            >
+              {topColumns.map((row) => {
+                return (
+                  <TableCell width={row.minWidth} align="center" key={row.id}>
+                    {latestDataPM25 ? latestDataPM25[row.key] : "尚無資料"}
                   </TableCell>
                 );
               })}
@@ -225,18 +213,14 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
           <Line
             options={options}
             data={{
-              labels: tvocRows
-                .slice(0, 12)
-                .reverse()
-                .map((row) => row.timestamp.substring(10, 15)),
               datasets: [
                 {
                   label: "TVOC",
                   data: tvocRows
-                    .slice(0, 12)
+                    .slice(0, 10)
                     .reverse()
                     .map((row) => {
-                      return row.value;
+                      return { x: row.timestamp, y: row.value };
                     }),
                   borderColor: "rgb(33, 192, 166)",
                   backgroundColor: "rgba(33, 192, 166,.5)",
@@ -249,10 +233,6 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
           <Line
             options={options}
             data={{
-              labels: pm25Rows
-                .slice(0, 12)
-                .reverse()
-                .map((row) => row.timestamp.substring(10, 15)),
               datasets: [
                 {
                   label: "PM2.5",
@@ -260,7 +240,7 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                     .slice(0, 12)
                     .reverse()
                     .map((row) => {
-                      return row.value;
+                      return { x: row.timestamp, y: row.value };
                     }),
                   borderColor: "rgb(255, 180, 99)",
                   backgroundColor: "rgba(255, 180, 99, 0.5)",
@@ -273,11 +253,6 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
           <Line
             options={options}
             data={{
-              labels: humidityRows
-                .filter((row) => row.mac == latestDataPM25.mac)
-                .slice(0, 12)
-                .reverse()
-                .map((row) => row.timestamp.substring(10, 15)),
               datasets: [
                 {
                   label: "Humidity from pm2.5",
@@ -286,7 +261,7 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                     .slice(0, 12)
                     .reverse()
                     .map((row) => {
-                      return row.value;
+                      return { x: row.timestamp, y: row.value };
                     }),
                   borderColor: "rgb(53, 162, 235)",
                   backgroundColor: "rgba(53, 162, 235, 0.5)",
@@ -298,7 +273,7 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                     .slice(0, 12)
                     .reverse()
                     .map((row) => {
-                      return row.value;
+                      return { x: row.timestamp, y: row.value };
                     }),
                   borderColor: "rgb(8, 74, 118)",
                   backgroundColor: "rgba(8, 74, 118, 0.5)",
@@ -311,10 +286,6 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
           <Line
             options={options}
             data={{
-              labels: temperatureRows
-                .slice(0, 12)
-                .reverse()
-                .map((row) => row.timestamp.substring(10, 15)),
               datasets: [
                 {
                   label: "Temperature from pm2.5",
@@ -323,7 +294,7 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                     .slice(0, 12)
                     .reverse()
                     .map((row) => {
-                      return row.value;
+                      return { x: row.timestamp, y: row.value };
                     }),
                   borderColor: "rgb(255, 99, 132)",
                   backgroundColor: "rgba(255, 99, 132, 0.5)",
@@ -335,7 +306,7 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                     .slice(0, 12)
                     .reverse()
                     .map((row) => {
-                      return row.value;
+                      return { x: row.timestamp, y: row.value };
                     }),
                   borderColor: "rgb(177, 14, 49)",
                   backgroundColor: "rgba(177, 14, 49, 0.5)",
@@ -368,7 +339,9 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                       tabIndex={-1}
                       key={row["timestamp"] + row["sensorid"]}
                     >
-                      <TableCell align={"center"}>{row.value}</TableCell>
+                      <TableCell align={"center"}>
+                        {row.value + " " + row.unit}
+                      </TableCell>
                       <TableCell align={"center"}>{row.timestamp}</TableCell>
                     </TableRow>
                   );
@@ -398,7 +371,9 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                       tabIndex={-1}
                       key={row["timestamp"] + row["sensorid"]}
                     >
-                      <TableCell align={"center"}>{row.value}</TableCell>
+                      <TableCell align={"center"}>
+                        {row.value + " " + row.unit}
+                      </TableCell>
                       <TableCell align={"center"}>{row.timestamp}</TableCell>
                     </TableRow>
                   );
@@ -428,7 +403,9 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                       tabIndex={-1}
                       key={row["timestamp"] + row["sensorid"]}
                     >
-                      <TableCell align={"center"}>{row.value}</TableCell>
+                      <TableCell align={"center"}>
+                        {row.value + " " + row.unit}
+                      </TableCell>
                       <TableCell align={"center"}>{row.timestamp}</TableCell>
                     </TableRow>
                   );
@@ -458,7 +435,9 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                       tabIndex={-1}
                       key={row["timestamp"] + row["sensorid"]}
                     >
-                      <TableCell align={"center"}>{row.value}</TableCell>
+                      <TableCell align={"center"}>
+                        {row.value + " " + row.unit}
+                      </TableCell>
                       <TableCell align={"center"}>{row.timestamp}</TableCell>
                     </TableRow>
                   );

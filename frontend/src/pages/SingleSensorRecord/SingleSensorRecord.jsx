@@ -12,10 +12,8 @@ import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import { AiOutlineEdit } from "react-icons/ai";
 import Box from "@mui/material/Box";
-import Input from "@mui/material/Input";
 import Button from "@mui/material/Button";
 import Modal from "@mui/material/Modal";
-import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
@@ -66,14 +64,10 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
 
   const { devEUI } = useParams();
 
-  const tempDevEUI = devEUI;
-  const devMac = tempDevEUI.toLowerCase();
+  const devMac = devEUI.toLowerCase();
 
   // filter the data matching mac
-  const filterRows = rows.filter((row) => {
-    return row.mac == devMac;
-  });
-
+  const filterRows = rows.filter((row) => row.mac == devMac);
   const row =
     filterRows.length == 0
       ? []
@@ -88,8 +82,10 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
             filterRows[2].Desc
           }`,
         };
+
   const [location, setLocation] = useState(1);
   const [open, setOpen] = useState(false);
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleChange = async (e) => {
@@ -214,7 +210,9 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
                       {recordsColumns.map((column) => {
                         return (
                           <TableCell key={column.id + i} align={column.align}>
-                            {row[column.id] || "尚無資料"}
+                            {column.id == "value"
+                              ? row[column.id] + " " + row.unit
+                              : row[column.id] || "尚無資料"}
                           </TableCell>
                         );
                       })}
@@ -273,7 +271,9 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
                                 scope="row"
                                 key={col.id}
                               >
-                                {row[col.id] || "尚無資料"}
+                                {col.id == "value"
+                                  ? row[col.id] + " " + row.unit
+                                  : row[col.id] || "尚無資料"}
                               </TableCell>
                             );
                           })}
@@ -314,7 +314,9 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
                                 scope="row"
                                 key={col.id}
                               >
-                                {row[col.id] || "尚無資料"}
+                                {col.id == "value"
+                                  ? row[col.id] + " " + row.unit
+                                  : row[col.id] || "尚無資料"}
                               </TableCell>
                             );
                           })}
@@ -355,7 +357,9 @@ const SingleSensorRecord = ({ rows, setRows, fetchRecords, locationList }) => {
                                 scope="row"
                                 key={col.id}
                               >
-                                {row[col.id] || "尚無資料"}
+                                {col.id == "value"
+                                  ? row[col.id] + " " + row.unit
+                                  : row[col.id] || "尚無資料"}
                               </TableCell>
                             );
                           })}
