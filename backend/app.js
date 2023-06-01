@@ -52,10 +52,13 @@ async function parseData(queryString) {
 
     // format timestamp to Local timestamp
     for (const row of recordsRow) {
-      row.value = row.value + " " + row.unit;
+      if (row.Desc == "TVOC") {
+        row.value *= 1000;
+        row.unit = "ppb";
+      }
       row.timestamp = new Date(row.timestamp).toLocaleString("zh-TW", {
         timeZone: "Asia/Taipei",
-        hour12: false,
+        hourCycle: "h23",
       });
     }
 
@@ -83,10 +86,12 @@ client.on("notification", (msg) => {
 
   const newPayload = {
     ...objPayload,
-    value: objPayload.value + " " + objPayload.unit,
+    value:
+      objPayload.Desc == "TVOC" ? objPayload.value * 1000 : objPayload.value,
+    unit: objPayload.Desc == "TVOC" ? "ppb" : objPayload.unit,
     timestamp: new Date(objPayload.timestamp).toLocaleString("zh-TW", {
       timeZone: "Asia/Taipei",
-      hour12: false,
+      hourCycle: "h23",
     }),
   };
 
@@ -111,7 +116,7 @@ app.get("/record/all", async (req, res) => {
       FROM RegistedSnrs \
       INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid \
       INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid\
-      ORDER BY Records."timestamp" DESC LIMIT 1000'
+      ORDER BY Records."timestamp" DESC'
     );
 
     res.json(formatData);
