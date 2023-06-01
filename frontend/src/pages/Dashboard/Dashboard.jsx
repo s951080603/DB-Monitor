@@ -217,8 +217,11 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                 {
                   label: "TVOC",
                   data: tvocRows
-                    .slice(0, 10)
-                    .reverse()
+                    .filter(
+                      (row) =>
+                        new Date(row.timestamp) >
+                        Date.now() - 8 * 60 * 60 * 1000
+                    )
                     .map((row) => {
                       return { x: row.timestamp, y: row.value };
                     }),
@@ -237,8 +240,11 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                 {
                   label: "PM2.5",
                   data: pm25Rows
-                    .slice(0, 12)
-                    .reverse()
+                    .filter(
+                      (row) =>
+                        new Date(row.timestamp) >
+                        Date.now() - 8 * 60 * 60 * 1000
+                    )
                     .map((row) => {
                       return { x: row.timestamp, y: row.value };
                     }),
@@ -258,8 +264,11 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                   label: "Humidity from pm2.5",
                   data: humidityRows
                     .filter((row) => row.mac == latestDataPM25.mac)
-                    .slice(0, 12)
-                    .reverse()
+                    .filter(
+                      (row) =>
+                        new Date(row.timestamp) >
+                        Date.now() - 8 * 60 * 60 * 1000
+                    )
                     .map((row) => {
                       return { x: row.timestamp, y: row.value };
                     }),
@@ -270,8 +279,11 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                   label: "Humidity from TVOC",
                   data: humidityRows
                     .filter((row) => row.mac == latestDataTVOC.mac)
-                    .slice(0, 12)
-                    .reverse()
+                    .filter(
+                      (row) =>
+                        new Date(row.timestamp) >
+                        Date.now() - 8 * 60 * 60 * 1000
+                    )
                     .map((row) => {
                       return { x: row.timestamp, y: row.value };
                     }),
@@ -291,8 +303,11 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                   label: "Temperature from pm2.5",
                   data: temperatureRows
                     .filter((row) => row.mac == latestDataPM25.mac)
-                    .slice(0, 12)
-                    .reverse()
+                    .filter(
+                      (row) =>
+                        new Date(row.timestamp) >
+                        Date.now() - 8 * 60 * 60 * 1000
+                    )
                     .map((row) => {
                       return { x: row.timestamp, y: row.value };
                     }),
@@ -303,8 +318,11 @@ const Dashboard = ({ locationList, rows, installedLocations }) => {
                   label: "Temperature from TVOC",
                   data: temperatureRows
                     .filter((row) => row.mac == latestDataTVOC.mac)
-                    .slice(0, 12)
-                    .reverse()
+                    .filter(
+                      (row) =>
+                        new Date(row.timestamp) >
+                        Date.now() - 8 * 60 * 60 * 1000
+                    )
                     .map((row) => {
                       return { x: row.timestamp, y: row.value };
                     }),
