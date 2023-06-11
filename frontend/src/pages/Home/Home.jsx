@@ -1,6 +1,7 @@
 import "./style.css";
-import { Bar } from "react-chartjs-2";
+import { Chart } from "react-chartjs-2";
 import "chartjs-adapter-moment";
+import moment from "moment";
 import {
   Chart as ChartJS,
   TimeScale,
@@ -10,7 +11,11 @@ import {
   SubTitle,
   Tooltip,
   Legend,
+  LineElement,
+  BarController,
+  LineController,
 } from "chart.js";
+
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import InputLabel from "@mui/material/InputLabel";
@@ -22,16 +27,19 @@ import Button from "@mui/material/Button";
 import { tvocSensorList, pm25SensorList } from "../../data";
 import { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
-SubTitle,
-  ChartJS.register(
-    TimeScale,
-    LinearScale,
-    BarElement,
-    Title,
-    SubTitle,
-    Tooltip,
-    Legend
-  );
+
+ChartJS.register(
+  TimeScale,
+  LinearScale,
+  BarElement,
+  LineElement,
+  BarController,
+  LineController,
+  Title,
+  SubTitle,
+  Tooltip,
+  Legend
+);
 
 const colorList = [
   "#ff6384",
@@ -44,6 +52,19 @@ const colorList = [
   "#b3d4ff",
   "#00bfa0",
 ];
+
+const colorLineList = [
+  ["rgb(240, 0, 52)", "rgb(240, 0, 52)"],
+  ["rgb(20, 83, 110)", "rgba(20, 83, 110,.5)"],
+  ["rgb(80, 233, 144)", "rgba(80, 233, 144,.5)"],
+  ["rgb(255, 238, 0)", "rgba(255, 238, 0,.5)"],
+  ["rgb(148, 0, 253)", "rgba(148, 0, 253,.5)"],
+  ["rgb(255, 136, 0)", "rgba(255, 136, 0,.5)"],
+  ["rgb(247, 122, 122)", "rgba(247, 122, 122,.5)"],
+  ["rgb(50, 133, 241)", "rgba(50, 133, 241,.5)"],
+  ["rgb(0, 255, 213)", "rgba(0, 255, 213,.5)"],
+];
+
 const order = [
   "43號 2F",
   "後港活動中心",
@@ -59,10 +80,10 @@ const pm25SensorMap = new Map();
 
 const Home = ({ rows, locationList }) => {
   const [timeInterval, setTimeInterval] = useState(8);
-  const [timeIntervalUnit, setTimeIntervalUnit] = useState(0);
+  const [timeIntervalUnit, setTimeIntervalUnit] = useState(1 / 60);
 
   const [timeInterval2, setTimeInterval2] = useState(8);
-  const [timeIntervalUnit2, setTimeIntervalUnit2] = useState(0);
+  const [timeIntervalUnit2, setTimeIntervalUnit2] = useState(1 / 60);
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -80,10 +101,25 @@ const Home = ({ rows, locationList }) => {
     scales: {
       x: {
         type: "time",
-        min: Date.now() - timeInterval * 60 * 60 * 1000,
-        max: Date.now(),
+        max: moment(Date.now()),
+        time: {
+          displayFormats: {
+            minute: "HH:mm",
+            hour: "MMM D, HH:mm",
+          },
+        },
       },
-      y: {},
+      y: {
+        type: "linear",
+      },
+      y1: {
+        type: "linear",
+        display: true,
+        position: "right",
+        grid: {
+          drawOnChartArea: false,
+        },
+      },
     },
   };
   useEffect(() => {
@@ -138,6 +174,7 @@ const Home = ({ rows, locationList }) => {
   const handleSelect2 = (event, newTimeIntervalUnit) => {
     setTimeIntervalUnit2(event.target.value);
   };
+
   return (
     <section className="home">
       <div className="chart-header">
@@ -182,7 +219,7 @@ const Home = ({ rows, locationList }) => {
               <MenuItem value={1}>Hours</MenuItem>
               <MenuItem value={24}>Days</MenuItem>
               <MenuItem value={24 * 7}>Weeks</MenuItem>
-              <MenuItem value={30 * 24 * 7}>Months</MenuItem>
+              <MenuItem value={4 * 24 * 7}>Months</MenuItem>
             </Select>
             <Button type="submit" variant="contained" className="submit">
               apply
@@ -197,26 +234,47 @@ const Home = ({ rows, locationList }) => {
           .map((devEUI, index) => {
             const newOptions = JSON.parse(JSON.stringify(options));
 
-            const tvocData = rows
-              .filter((row) => row.Desc == "TVOC")
-              .filter(
-                (row) =>
-                  new Date(row.timestamp) >
-                  Date.now() - timeInterval * 60 * 60 * 1000
-              );
+            const timeIntervalData = rows.filter(
+              (row) =>
+                moment(new Date(row.timestamp)) >
+                moment(Date.now() - timeInterval * 60 * 60 * 1000)
+            );
+
+            const tvocData = timeIntervalData.filter(
+              (row) => row.Desc == "TVOC"
+            );
+
+            const temperatureData = timeIntervalData.filter(
+              (row) => row.Desc == "Temperature"
+            );
 
             newOptions.plugins.title.text = tvocData.find(
               (row) => row.mac == devEUI.toLowerCase()
             )?.locDesc;
             newOptions.plugins.subtitle.text = devEUI;
 
-            newOptions.scales.y.max = Math.max(
-              ...tvocData.map((row) => row.value)
+            newOptions.scales.x.min = moment(
+              Date.now() - timeInterval * 60 * 60 * 1000
+            );
+
+            newOptions.scales.y1.max = Math.round(
+              Math.max(
+                ...temperatureData
+                  .filter((row) =>
+                    tvocSensorList.includes(row.mac.toUpperCase())
+                  )
+                  .map((row) => row.value)
+              ) * 1.1
+            );
+
+            newOptions.scales.y.max = Math.round(
+              Math.max(...tvocData.map((row) => row.value))
             );
 
             return (
               <div className="bar-chart" key={devEUI}>
-                <Bar
+                <Chart
+                  type="bar"
                   options={newOptions}
                   data={{
                     datasets: [
@@ -224,10 +282,29 @@ const Home = ({ rows, locationList }) => {
                         label: "TVOC",
                         data: tvocData
                           .filter((row) => row.mac == devEUI.toLowerCase())
-                          .map((row) => ({ x: row.timestamp, y: row.value })),
+                          .map((row) => ({
+                            x: moment(new Date(row.timestamp)),
+                            y: row.value,
+                          })),
                         backgroundColor: colorList[index],
                         maxBarThickness: 20,
                         minBarLength: 5,
+                        yAxisID: "y",
+                      },
+                      {
+                        type: "line",
+                        label: "Temperature",
+                        data: temperatureData
+                          .filter((row) => row.mac == devEUI.toLowerCase())
+                          .map((row) => ({
+                            x: moment(new Date(row.timestamp)),
+                            y: row.value,
+                          })),
+                        backgroundColor: colorLineList[index][0],
+                        borderColor: colorLineList[index][1],
+                        maxBarThickness: 20,
+                        minBarLength: 5,
+                        yAxisID: "y1",
                       },
                     ],
                   }}
@@ -281,7 +358,7 @@ const Home = ({ rows, locationList }) => {
               <MenuItem value={1}>Hours</MenuItem>
               <MenuItem value={24}>Days</MenuItem>
               <MenuItem value={24 * 7}>Weeks</MenuItem>
-              <MenuItem value={30 * 24 * 7}>Months</MenuItem>
+              <MenuItem value={4 * 24 * 7}>Months</MenuItem>
             </Select>
             <Button type="submit" variant="contained" className="submit">
               apply
@@ -294,26 +371,44 @@ const Home = ({ rows, locationList }) => {
           .filter((key) => key != undefined)
           .map((devEUI, index) => {
             const newOptions = JSON.parse(JSON.stringify(options));
-            const pm25Data = rows
-              .filter((row) => row.Desc == "PM2.5")
-              .filter(
-                (row) =>
-                  new Date(row.timestamp) >
-                  Date.now() - timeInterval2 * 60 * 60 * 1000
-              );
+
+            const timeIntervalData = rows.filter(
+              (row) =>
+                moment(new Date(row.timestamp)) >
+                moment(Date.now() - timeInterval2 * 60 * 60 * 1000)
+            );
+
+            const pm25Data = timeIntervalData.filter(
+              (row) => row.Desc == "PM2.5"
+            );
+
+            const temperatureData = timeIntervalData.filter(
+              (row) => row.Desc == "Temperature"
+            );
 
             newOptions.plugins.title.text = pm25Data.find(
               (row) => row.mac == devEUI.toLowerCase()
             )?.locDesc;
             newOptions.plugins.subtitle.text = devEUI;
-            newOptions.scales.y.max = Math.max(
-              ...pm25Data.map((row) => row.value)
+            newOptions.scales.y.max = Math.round(
+              Math.max(...pm25Data.map((row) => row.value)) * 1.1
             );
-            newOptions.scales.x.min =
-              Date.now() - timeInterval2 * 60 * 60 * 1000;
+            newOptions.scales.y1.max = Math.round(
+              Math.max(
+                ...temperatureData
+                  .filter((row) =>
+                    pm25SensorList.includes(row.mac.toUpperCase())
+                  )
+                  .map((row) => row.value)
+              ) * 1.1
+            );
+            newOptions.scales.x.min = moment(
+              Date.now() - timeInterval2 * 60 * 60 * 1000
+            );
             return (
               <div className="bar-chart" key={devEUI}>
-                <Bar
+                <Chart
+                  type="bar"
                   options={newOptions}
                   data={{
                     datasets: [
@@ -321,10 +416,28 @@ const Home = ({ rows, locationList }) => {
                         label: "PM2.5",
                         data: pm25Data
                           .filter((row) => row.mac == devEUI.toLowerCase())
-                          .map((row) => ({ x: row.timestamp, y: row.value })),
+                          .map((row) => ({
+                            x: moment(new Date(row.timestamp)),
+                            y: row.value,
+                          })),
                         backgroundColor: colorList[index],
                         minBarLength: 5,
                         maxBarThickness: 20,
+                      },
+                      {
+                        type: "line",
+                        label: "Temperature",
+                        data: temperatureData
+                          .filter((row) => row.mac == devEUI.toLowerCase())
+                          .map((row) => ({
+                            x: moment(new Date(row.timestamp)),
+                            y: row.value,
+                          })),
+                        backgroundColor: colorLineList[index][0],
+                        borderColor: colorLineList[index][1],
+                        maxBarThickness: 20,
+                        minBarLength: 5,
+                        yAxisID: "y1",
                       },
                     ],
                   }}

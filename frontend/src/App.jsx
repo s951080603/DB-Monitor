@@ -32,6 +32,7 @@ function App() {
     console.log("socket connect");
     fetchRecords()
       .then((data) => {
+        console.log("fetch records");
         setRows(data);
       })
       .catch((error) => {
@@ -51,7 +52,7 @@ function App() {
         const newRows = [data, ...currentRows];
         return newRows;
       });
-      console.log("new data coming");
+      // console.log("new data coming");
     });
 
     return () => {
