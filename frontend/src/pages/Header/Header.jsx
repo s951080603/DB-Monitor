@@ -21,16 +21,25 @@ const Header = ({ rows, locationList, installedLocations }) => {
   // const [location, setLocation] = useState("70734R");
 
   const [value, setValue] = useState(0);
+  const [devEUI, setDevEUI] = useState("00137a1000020342");
+  const [location, setLocation] = useState("");
   const navigate = useNavigate();
 
   const handleSensorSelectChange = (event) => {
-    const devEUI = event.target.value;
-    navigate(`/${devEUI.toLowerCase()}`);
+    setDevEUI((currentDevEUI) => {
+      const newDevEUI = event.target.value;
+      navigate(`/${newDevEUI.toLowerCase()}`);
+
+      return newDevEUI;
+    });
   };
 
   const handleLocationSelectChange = (event) => {
-    const location = event.target.value;
-    navigate(`/dashboard/${location}`);
+    setLocation((currentLocation) => {
+      const newLocation = event.target.value;
+      navigate(`/dashboard/${newLocation}`);
+      return newLocation;
+    });
   };
 
   return (
@@ -41,7 +50,7 @@ const Header = ({ rows, locationList, installedLocations }) => {
           <InputLabel htmlFor="grouped-native-select">Sensor</InputLabel>
           <Select
             native
-            defaultValue=""
+            defaultValue="00137A1000020342"
             id="grouped-native-select"
             label="Grouping"
             onChange={handleSensorSelectChange}
@@ -77,7 +86,7 @@ const Header = ({ rows, locationList, installedLocations }) => {
           <InputLabel htmlFor="grouped-native-select">Location</InputLabel>
           <Select
             native
-            defaultValue=""
+            defaultValue={location}
             id="grouped-native-select"
             label="Grouping"
             onChange={handleLocationSelectChange}
@@ -123,7 +132,7 @@ const Header = ({ rows, locationList, installedLocations }) => {
             label="Records"
             icon={<Newspaper />}
             onClick={() => {
-              navigate("/all");
+              navigate("/00137a1000020342");
             }}
           />
           <BottomNavigationAction

@@ -18,15 +18,15 @@ import {
 
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Button from "@mui/material/Button";
 
 import { tvocSensorList, pm25SensorList } from "../../data";
 import { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
+
+import { order, colorLineList, colorList } from "../../data";
 
 ChartJS.register(
   TimeScale,
@@ -41,49 +41,34 @@ ChartJS.register(
   Legend
 );
 
-const colorList = [
-  "#ff6384",
-  "#1391c7a6",
-  "#50e990b9",
-  "#f1e428c5",
-  "#9919f59d",
-  "#ffa300",
-  "#ffb4b4",
-  "#b3d4ff",
-  "#00bfa0",
-];
-
-const colorLineList = [
-  ["rgb(240, 0, 52)", "rgb(240, 0, 52)"],
-  ["rgb(20, 83, 110)", "rgba(20, 83, 110,.5)"],
-  ["rgb(80, 233, 144)", "rgba(80, 233, 144,.5)"],
-  ["rgb(255, 238, 0)", "rgba(255, 238, 0,.5)"],
-  ["rgb(148, 0, 253)", "rgba(148, 0, 253,.5)"],
-  ["rgb(255, 136, 0)", "rgba(255, 136, 0,.5)"],
-  ["rgb(247, 122, 122)", "rgba(247, 122, 122,.5)"],
-  ["rgb(50, 133, 241)", "rgba(50, 133, 241,.5)"],
-  ["rgb(0, 255, 213)", "rgba(0, 255, 213,.5)"],
-];
-
-const order = [
-  "43號 2F",
-  "後港活動中心",
-  "Stairwell 1F",
-  "45號 2F",
-  "45號 2F 側面",
-  "45號 2F 背面",
-  "Main Entry 1",
-  "Main Entry 2",
-];
 const tvocSensorMap = new Map();
 const pm25SensorMap = new Map();
 
-const Home = ({ rows, locationList }) => {
-  const [timeInterval, setTimeInterval] = useState(8);
-  const [timeIntervalUnit, setTimeIntervalUnit] = useState(1 / 60);
+const fetchRecordsInTimeInterval = async (timeInterval = 8) => {
+  const startTime = new Date(
+    Date.now() - timeInterval * 60 * 60 * 1000
+  ).toLocaleString("zh-TW", {
+    timeZone: "Asia/Taipei",
+    hourCycle: "h23",
+  });
+  const response = await fetch(
+    `http://chiu.hopto.org:8963/record?startTime=${startTime}`
+  );
+  const data = await response.json();
 
-  const [timeInterval2, setTimeInterval2] = useState(8);
-  const [timeIntervalUnit2, setTimeIntervalUnit2] = useState(1 / 60);
+  return data;
+};
+
+const Home = () => {
+  const [timeIntervalPM25Data, setTimeIntervalPM25Data] = useState([]);
+  const [timeIntervalTVOCData, setTimeIntervalTVOCData] = useState([]);
+
+  const [timeIntervalTVOC, setTimeIntervalTVOC] = useState(8);
+  const [timeIntervalPM25, setTimeIntervalPM25] = useState(8);
+
+  const [timeIntervalUnitTVOC, setTimeIntervalUnitTVOC] = useState(1);
+  const [timeIntervalUnitPM25, setTimeIntervalUnitPM25] = useState(1);
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
@@ -123,25 +108,45 @@ const Home = ({ rows, locationList }) => {
     },
   };
   useEffect(() => {
+    fetchRecordsInTimeInterval(timeIntervalTVOC)
+      .then((data) => {
+        setTimeIntervalTVOCData(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [timeIntervalTVOC]);
+  useEffect(() => {
+    fetchRecordsInTimeInterval(timeIntervalPM25)
+      .then((data) => {
+        setTimeIntervalPM25Data(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [timeIntervalPM25]);
+
+  useEffect(() => {
     order.forEach((loc) => {
       tvocSensorMap.set(
-        rows
+        timeIntervalTVOCData
           .filter((row) => row.Desc == "TVOC")
           .find((row) => row.locDesc == loc)?.mac,
         loc
       );
       pm25SensorMap.set(
-        rows
+        timeIntervalTVOCData
           .filter((row) => row.Desc == "PM2.5")
           .find((row) => row.locDesc == loc)?.mac,
         loc
       );
     });
-  }, [rows]);
+  }, [timeIntervalTVOCData, timeIntervalPM25Data]);
 
   const handleChange = (event, newTimeInterval) => {
-    setTimeInterval(newTimeInterval);
+    setTimeIntervalTVOC(newTimeInterval);
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -151,15 +156,15 @@ const Home = ({ rows, locationList }) => {
       jsonForm[key] = value;
     });
 
-    setTimeInterval(jsonForm.timeInterval * jsonForm.timeIntervalUnit);
-  };
-  const handleSelect = (event, newTimeIntervalUnit) => {
-    setTimeIntervalUnit(event.target.value);
+    setTimeIntervalTVOC(
+      jsonForm.timeIntervalTVOC * jsonForm.timeIntervalUnitTVOC
+    );
   };
 
   const handleChange2 = (event, newTimeInterval) => {
-    setTimeInterval2(newTimeInterval);
+    setTimeIntervalPM25(newTimeInterval);
   };
+
   const handleSubmit2 = (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -169,10 +174,17 @@ const Home = ({ rows, locationList }) => {
       jsonForm[key] = value;
     });
 
-    setTimeInterval2(jsonForm.timeInterval * jsonForm.timeIntervalUnit);
+    setTimeIntervalPM25(
+      jsonForm.timeIntervalPM25 * jsonForm.timeIntervalUnitPM25
+    );
   };
-  const handleSelect2 = (event, newTimeIntervalUnit) => {
-    setTimeIntervalUnit2(event.target.value);
+
+  const handleSelect = (e) => {
+    setTimeIntervalUnitTVOC(e.target.value);
+  };
+
+  const handleSelect2 = (e) => {
+    setTimeIntervalUnitPM25(e.target.value);
   };
 
   return (
@@ -182,12 +194,13 @@ const Home = ({ rows, locationList }) => {
         <div className="time-interval-selector">
           <ToggleButtonGroup
             color="primary"
-            value={timeInterval}
+            value={timeIntervalTVOC}
             exclusive
             onChange={handleChange}
             aria-label="Platform"
             className="button-group"
           >
+            {/* hour base*/}
             <ToggleButton value={1}>1 h</ToggleButton>
             <ToggleButton value={4}>4 h</ToggleButton>
             <ToggleButton value={8}>8 h</ToggleButton>
@@ -201,7 +214,7 @@ const Home = ({ rows, locationList }) => {
               id="outlined-number"
               type="number"
               required
-              name="timeInterval"
+              name="timeIntervalTVOC"
               sx={{ width: 80 }}
               size="small"
               InputProps={{
@@ -209,8 +222,8 @@ const Home = ({ rows, locationList }) => {
               }}
             />
             <Select
-              name="timeIntervalUnit"
-              value={timeIntervalUnit}
+              name="timeIntervalUnitTVOC"
+              value={timeIntervalUnitTVOC}
               required
               onChange={handleSelect}
               sx={{ height: 40, width: 100 }}
@@ -234,17 +247,11 @@ const Home = ({ rows, locationList }) => {
           .map((devEUI, index) => {
             const newOptions = JSON.parse(JSON.stringify(options));
 
-            const timeIntervalData = rows.filter(
-              (row) =>
-                moment(new Date(row.timestamp)) >
-                moment(Date.now() - timeInterval * 60 * 60 * 1000)
-            );
-
-            const tvocData = timeIntervalData.filter(
+            const tvocData = timeIntervalTVOCData.filter(
               (row) => row.Desc == "TVOC"
             );
 
-            const temperatureData = timeIntervalData.filter(
+            const temperatureData = timeIntervalTVOCData.filter(
               (row) => row.Desc == "Temperature"
             );
 
@@ -254,7 +261,7 @@ const Home = ({ rows, locationList }) => {
             newOptions.plugins.subtitle.text = devEUI;
 
             newOptions.scales.x.min = moment(
-              Date.now() - timeInterval * 60 * 60 * 1000
+              Date.now() - timeIntervalTVOC * 60 * 60 * 1000
             );
 
             newOptions.scales.y1.max = Math.round(
@@ -268,7 +275,7 @@ const Home = ({ rows, locationList }) => {
             );
 
             newOptions.scales.y.max = Math.round(
-              Math.max(...tvocData.map((row) => row.value))
+              Math.max(...tvocData.map((row) => row.value)) * 1.1
             );
 
             return (
@@ -320,7 +327,7 @@ const Home = ({ rows, locationList }) => {
         <div className="time-interval-selector">
           <ToggleButtonGroup
             color="primary"
-            value={timeInterval2}
+            value={timeIntervalPM25}
             exclusive
             onChange={handleChange2}
             aria-label="Platform"
@@ -339,7 +346,7 @@ const Home = ({ rows, locationList }) => {
               id="outlined-number"
               type="number"
               required
-              name="timeInterval"
+              name="timeIntervalPM25"
               sx={{ width: 80 }}
               size="small"
               InputProps={{
@@ -347,14 +354,13 @@ const Home = ({ rows, locationList }) => {
               }}
             />
             <Select
-              name="timeIntervalUnit"
-              value={timeIntervalUnit2}
+              name="timeIntervalUnitPM25"
+              value={timeIntervalUnitPM25}
               required
               onChange={handleSelect2}
               sx={{ height: 40, width: 100 }}
             >
               <MenuItem value={1 / 60}>Mins</MenuItem>
-
               <MenuItem value={1}>Hours</MenuItem>
               <MenuItem value={24}>Days</MenuItem>
               <MenuItem value={24 * 7}>Weeks</MenuItem>
@@ -372,17 +378,11 @@ const Home = ({ rows, locationList }) => {
           .map((devEUI, index) => {
             const newOptions = JSON.parse(JSON.stringify(options));
 
-            const timeIntervalData = rows.filter(
-              (row) =>
-                moment(new Date(row.timestamp)) >
-                moment(Date.now() - timeInterval2 * 60 * 60 * 1000)
-            );
-
-            const pm25Data = timeIntervalData.filter(
+            const pm25Data = timeIntervalPM25Data.filter(
               (row) => row.Desc == "PM2.5"
             );
 
-            const temperatureData = timeIntervalData.filter(
+            const temperatureData = timeIntervalPM25Data.filter(
               (row) => row.Desc == "Temperature"
             );
 
@@ -403,7 +403,7 @@ const Home = ({ rows, locationList }) => {
               ) * 1.1
             );
             newOptions.scales.x.min = moment(
-              Date.now() - timeInterval2 * 60 * 60 * 1000
+              Date.now() - timeIntervalPM25 * 60 * 60 * 1000
             );
             return (
               <div className="bar-chart" key={devEUI}>

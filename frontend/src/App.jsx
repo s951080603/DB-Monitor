@@ -30,14 +30,6 @@ function App() {
   useEffect(() => {
     const socket = io("http://chiu.hopto.org:8080");
     console.log("socket connect");
-    fetchRecords()
-      .then((data) => {
-        console.log("fetch records");
-        setRows(data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
 
     fetchLocations()
       .then((data) => {
@@ -46,7 +38,14 @@ function App() {
       .catch((error) => {
         console.error(error);
       });
-
+    fetchRecords()
+      .then((data) => {
+        console.log("fetch records");
+        setRows(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
     socket.on("db-notify", (data) => {
       setRows((currentRows) => {
         const newRows = [data, ...currentRows];
@@ -77,10 +76,8 @@ function App() {
             />
           }
         >
-          <Route
-            index
-            element={<Home rows={rows} locationList={locationList} />}
-          />
+          <Route index element={<Home locationList={locationList} />} />
+
           <Route
             path="/all"
             element={
