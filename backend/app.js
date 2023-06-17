@@ -128,6 +128,54 @@ app.get("/record/all", async (req, res) => {
   }
 });
 
+// Deprecated: Replace 'timeInterval' with 'start_time' when querying records for a specific timestamp interval.
+/*
+app.get("/record", async (req, res) => {
+  try {
+    const timeInterval = req.query.timeInterval;
+    const endTime = Math.floor(Date.now() / 1000);
+    formatData = await parseData(
+      // 將 JS timestamp 轉為 PostgreSQL timestamp without time zone
+      `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations.locid, locations."locDesc"
+      FROM RegistedSnrs
+      INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid
+      INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid
+      INNER JOIN locations ON RegistedSnrs.locid = locations.locid
+      WHERE Records."timestamp" >= (NOW() -interval '${timeInterval || "8h"}'
+        ) AND Records."timestamp" <= to_timestamp(${endTime})::timestamp without time zone
+      ORDER BY Records."timestamp" DESC`
+    ); 
+    res.json(formatData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Interval Server Error");
+  }
+});
+*/
+
+app.get("/record", async (req, res) => {
+  try {
+    const startTime = req.query.startTime;
+    const endTime = Math.floor(Date.now() / 1000);
+
+    formatData = await parseData(
+      `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations.locid, locations."locDesc"
+      FROM RegistedSnrs
+      INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid
+      INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid
+      INNER JOIN locations ON RegistedSnrs.locid = locations.locid
+      WHERE Records."timestamp" >= '${startTime}'
+      AND Records."timestamp" <= to_timestamp(${endTime})::timestamp without time zone
+      ORDER BY Records."timestamp" DESC`
+    ); /* 將 JS timestamp 轉為 PostgreSQL timestamp without time zone*/
+
+    res.json(formatData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Interval Server Error");
+  }
+});
+
 app.get("/record/:devEUI", async (req, res) => {
   try {
     const devEUI = req.params.devEUI;
