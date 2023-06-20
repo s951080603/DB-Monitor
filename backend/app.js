@@ -244,7 +244,7 @@ app.patch("/sensor/:devEUI", async (req, res) => {
 });
 
 app.get("/charts", function (req, resp) {
-  let selected = "28";
+  let selected = "54";
   let search_ymd = moment()
     .add(-3, "days")
     .toISOString()
@@ -317,7 +317,7 @@ app.get("/charts", function (req, resp) {
       select = select + "</select>";
       select =
         select +
-        '請選擇日期:<input type="date" id="yymmddd" name="yymmddd"><button type="submit" name="submit">查詢</button></form>\n';
+        '請選擇日期:<input type="date" id="yymmddd" name="yymmddd" required><button type="submit" name="submit">查詢</button></form>\n';
       resp.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       resp.write(
         '<link rel="stylsheet" type="text/css" href="datepicker.min.css">'

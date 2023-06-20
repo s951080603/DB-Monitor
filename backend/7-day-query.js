@@ -7,7 +7,8 @@ module.exports.getLoc = async function getLoc(sid, cb) {
     let queryStr = `select l."locDesc",s."Desc",re.sensorid  
     from registedsnrs re,locations l,subtype s
     where re.locid=l.locid AND s.stypeid=re.stypeid
-    AND (l.bldno::text = '2'::text OR l.bldno::text = '3'::text)`;
+    AND (l.bldno::text = '2'::text OR l.bldno::text = '3'::text)
+    AND re.sensorid >= 52`;
 
     if (sid != "") queryStr = queryStr + ` and re.sensorid='${sid}'`;
     else queryStr = queryStr + ` order by re.sensorid`;
