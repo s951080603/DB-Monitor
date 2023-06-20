@@ -14,6 +14,7 @@ import {
   LineElement,
   BarController,
   LineController,
+  PointElement,
 } from "chart.js";
 
 import ToggleButton from "@mui/material/ToggleButton";
@@ -29,6 +30,7 @@ import TextField from "@mui/material/TextField";
 import { order, colorLineList, colorList } from "../../data";
 
 ChartJS.register(
+  PointElement,
   TimeScale,
   LinearScale,
   BarElement,
@@ -51,12 +53,15 @@ const fetchRecordsInTimeInterval = async (timeInterval = 8) => {
     timeZone: "Asia/Taipei",
     hourCycle: "h23",
   });
-  const response = await fetch(
-    `http://chiu.hopto.org:8963/record?startTime=${startTime}`
-  );
-  const data = await response.json();
-
-  return data;
+  try {
+    const response = await fetch(
+      `http://chiu.hopto.org:8963/record?startTime=${startTime}`
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const Home = () => {
@@ -113,7 +118,7 @@ const Home = () => {
         setTimeIntervalTVOCData(data);
       })
       .catch((error) => {
-        console.error(error);
+        console.log(error);
       });
   }, [timeIntervalTVOC]);
   useEffect(() => {
@@ -122,7 +127,7 @@ const Home = () => {
         setTimeIntervalPM25Data(data);
       })
       .catch((error) => {
-        console.error(error);
+        console.log(error);
       });
   }, [timeIntervalPM25]);
 

@@ -1,4 +1,3 @@
-import { useScrollTrigger } from "@mui/material";
 import { useEffect, useState } from "react";
 
 const fetchDayQuery = async () => {
