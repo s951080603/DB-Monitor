@@ -1,10 +1,12 @@
 const express = require("express");
-const { client } = require("./config.js");
+const { pool, client } = require("./config.js");
+const { chartHTML, getLoc, getdata } = require("./7-day-query.js");
 const app = express();
 const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
 const server = http.createServer(app);
+const moment = require("moment");
 
 app.use(cors());
 app.use(express.json());
@@ -97,7 +99,7 @@ client.on("notification", (msg) => {
 
   // update local data
   const tempData = formatData;
-  formatData = [newPayload, ...tempData];
+  if (tempData != null) formatData = [newPayload, ...tempData];
   console.log(newPayload);
 
   io.emit("db-notify", newPayload);
@@ -239,6 +241,116 @@ app.patch("/sensor/:devEUI", async (req, res) => {
   }
   // 这里可以根据 devEUI 进行相应的处理逻辑
   // ...
+});
+
+app.get("/charts", function (req, resp) {
+  let selected = "28";
+  let search_ymd = moment()
+    .add(-3, "days")
+    .toISOString()
+    .split("T")[0]
+    .substring(0, 10); //日期預設值
+
+  if (req.query.sensor_select != undefined) {
+    selected = req.query.sensor_select;
+  }
+
+  if (req.query.yymmddd != undefined) {
+    search_ymd = req.query.yymmddd;
+  }
+
+  console.log(req.query.sensor_select + "," + req.query.yymmddd);
+
+  const set_hours = "24"; //設定1天查詢幾小時
+
+  //getdata('32','2023-06-12','24','3',cbpm=>{
+
+  getdata(selected, search_ymd, set_hours, "7", (cbpm) => {
+    // console.log(cbpm);
+    getLoc("", (list) => {
+      let date_script = `\n<script type='text/javascript'>
+	  	const datepicker = require('js-datepicker')
+	  	const picker = datepicker('.yymmddd', {
+		  formatter: (input, date, instance) => {
+		    const value = date.toLocaleDateString()
+		    input.value = value 
+		  }
+		})
+  		</script>\n`;
+
+      let select =
+        date_script +
+        '<form id="form1" action="http://chiu.hopto.org:8963/charts" method="get">\n';
+      select +=
+        '請選擇感測器: <select name="sensor_select" id="sensor_select">\n';
+
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].sensorid == selected) {
+          select =
+            select +
+            '<option value="' +
+            list[i].sensorid +
+            '" selected>' +
+            list[i].sensorid +
+            "-" +
+            list[i].Desc +
+            " " +
+            list[i].locDesc +
+            "</option>\n";
+          console.log(list[i]);
+          defaul_title = list[i];
+        } else {
+          select =
+            select +
+            '<option value="' +
+            list[i].sensorid +
+            '">' +
+            list[i].sensorid +
+            "-" +
+            list[i].Desc +
+            " " +
+            list[i].locDesc +
+            "</option>\n";
+          console.log(list[i]);
+        }
+      }
+      select = select + "</select>";
+      select =
+        select +
+        '請選擇日期:<input type="date" id="yymmddd" name="yymmddd"><button type="submit" name="submit">查詢</button></form>\n';
+      resp.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      resp.write(
+        '<link rel="stylsheet" type="text/css" href="datepicker.min.css">'
+      );
+
+      resp.write(select);
+
+      var h = chartHTML(cbpm, defaul_title);
+      resp.write(h);
+
+      //console.log(select)
+
+      resp.end();
+    });
+  });
+});
+
+//app.get('/liff/:dd', function (req, resp) {
+app.get("/liff/:dd/:devid/:hh", function (req, resp) {
+  //const cond='2023-06-08'
+  const cond = req.params.dd;
+  const id = req.params.devid;
+  const hh = req.params.hh;
+
+  getdata(id, cond, hh, (cbpm) => {
+    getloc(id, (char_title) => {
+      resp.writeHead(200, { "Content-Type": "text/html" });
+      var h = chartHTML(id, cbpm, char_title[0], cond);
+      resp.write(h);
+      // console.log(h);
+      resp.end();
+    });
+  });
 });
 
 app.listen(8963, () => {
