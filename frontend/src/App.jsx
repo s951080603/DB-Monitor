@@ -9,6 +9,7 @@ import SingleSensorRecord from "./pages/SingleSensorRecord/SingleSensorRecord";
 import io from "socket.io-client";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Home from "./pages/Home/Home";
+import DayQuery from "./pages/DayQuery/DayQuery";
 
 const fetchRecords = async () => {
   const response = await fetch("http://chiu.hopto.org:8963/record/all");
@@ -126,6 +127,7 @@ function App() {
             path="/dashboard/:location"
             element={<Dashboard locationList={locationList} rows={rows} />}
           />
+          <Route path="7-day-query" element={<DayQuery />} />
         </Route>
       </Routes>
     </BrowserRouter>

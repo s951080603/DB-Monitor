@@ -15,7 +15,9 @@ import RestoreIcon from "@mui/icons-material/Restore";
 import Newspaper from "@mui/icons-material/Newspaper";
 import InsertChart from "@mui/icons-material/InsertChart";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
+import DateRangeIcon from "@mui/icons-material/DateRange";
 import HomeIcon from "@mui/icons-material/Home";
+import DayQuery from "../DayQuery/DayQuery";
 const Header = ({ rows, locationList, installedLocations }) => {
   // const [devEUI, setDevEUI] = useState("ALL");
   // const [location, setLocation] = useState("70734R");
@@ -44,7 +46,7 @@ const Header = ({ rows, locationList, installedLocations }) => {
 
   return (
     <header className="header">
-      <h1 className="logo">DB MONITOR</h1>
+      <h1 className="logo">EPA MONITOR</h1>
       {value == 1 ? (
         <FormControl sx={{ m: 1, minWidth: 120 }}>
           <InputLabel htmlFor="grouped-native-select">Sensor</InputLabel>
@@ -113,7 +115,7 @@ const Header = ({ rows, locationList, installedLocations }) => {
         </FormControl>
       ) : null}
 
-      <Box sx={{ width: 400 }}>
+      <Box sx={{ width: 500 }}>
         <BottomNavigation
           showLabels
           value={value}
@@ -128,6 +130,7 @@ const Header = ({ rows, locationList, installedLocations }) => {
               navigate("/");
             }}
           />
+
           <BottomNavigationAction
             label="Records"
             icon={<Newspaper />}
@@ -147,6 +150,13 @@ const Header = ({ rows, locationList, installedLocations }) => {
             icon={<InsertChart />}
             onClick={() => {
               navigate("/dashboard");
+            }}
+          />
+          <BottomNavigationAction
+            label="7-Day Query"
+            icon={<DateRangeIcon />}
+            onClick={() => {
+              navigate("/7-day-query");
             }}
           />
         </BottomNavigation>
