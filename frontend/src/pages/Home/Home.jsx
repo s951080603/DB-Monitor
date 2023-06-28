@@ -55,7 +55,7 @@ const fetchRecordsInTimeInterval = async (timeInterval = 8) => {
   });
   try {
     const response = await fetch(
-      `http://chiu.hopto.org:8963/record?startTime=${startTime}`
+      `http://140.138.179.222:8963/record?startTime=${startTime}`
     );
     const data = await response.json();
     return data;

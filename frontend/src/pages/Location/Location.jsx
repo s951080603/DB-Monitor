@@ -11,8 +11,26 @@ import Button from "@mui/material/Button";
 import { useEffect, useState } from "react";
 
 const ariaLabel = { "aria-label": "description" };
+const fetchLocations = async () => {
+  const response = await fetch("http://140.138.179.222:8963/location");
+  const data = await response.json();
+  return data;
+};
+const Location = () => {
+  const [locationList, setLocationList] = useState([]);
+  const [locationListKey, setLocationListKey] = useState([]);
 
-const Location = ({ locationList, setLocationList, fetchLocations }) => {
+  useEffect(() => {
+    fetchLocations()
+      .then((data) => {
+        setLocationList(data);
+        setLocationListKey(Object.keys(data[0]));
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -22,7 +40,7 @@ const Location = ({ locationList, setLocationList, fetchLocations }) => {
       jsonForm[key] = value;
     });
 
-    fetch("http://chiu.hopto.org:8963/location", {
+    fetch("http://140.138.179.222:8963/location", {
       method: "POST",
       body: JSON.stringify(jsonForm),
       headers: {
@@ -44,7 +62,6 @@ const Location = ({ locationList, setLocationList, fetchLocations }) => {
 
     // update locationList
   };
-  const locationListKey = Object.keys(locationList[0]);
   return (
     <section className="location-page-container">
       <div className="logo">Location</div>
