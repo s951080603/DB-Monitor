@@ -13,7 +13,6 @@ module.exports.getLoc = async function getLoc(sid, cb) {
     if (sid != "") queryStr = queryStr + ` and re.sensorid='${sid}'`;
     else queryStr = queryStr + ` order by re.sensorid`;
 
-    console.log(queryStr);
     const client = await pool.connect();
 
     await client.query(queryStr, function (err, res) {
@@ -42,17 +41,26 @@ module.exports.getdata = async function getdata(sensorid, dd, h = 8, days, cb) {
       .subtract(days - 1, "d")
       .format("YYYY-MM-DD");
 
-    const queryStr = `SELECT grid.t5,round(avg(t.value),3) AS avg_value
-		FROM (SELECT generate_series('${search_ymd} 00:00:00' ,'${dd} 23:59:59', interval '5 min') AS t5
-		      ) grid
-		LEFT JOIN records t ON t."timestamp" >= grid.t5
-			AND t."timestamp" <  grid.t5 +  interval '5 min'
-			AND t.sensorid='${sensorid}'
-			AND "timestamp" > '${search_ymd} 00:00:00'
-		GROUP  BY grid.t5
-		ORDER  BY grid.t5 limit ${limit_n};`;
+    const queryStr = `SELECT grid.t5, ROUND(AVG(CASE WHEN t.sensorid IN (
+      SELECT DISTINCT r1.sensorid
+      FROM records r1, registedsnrs re, subtype s
+      WHERE r1.sensorid = re.sensorid
+          AND s.stypeid = re.stypeid
+          AND s."Desc" = 'TVOC'
+      ) THEN t.value * 1000 ELSE t.value END), 3) AS avg_value
+      FROM (
+      SELECT generate_series('${search_ymd} 00:00:00', '${dd} 23:59:59', interval '5 min') AS t5
+      ) grid
+      LEFT JOIN records t ON t."timestamp" >= grid.t5
+      AND t."timestamp" < grid.t5 + interval '5 min'
+      AND t.sensorid = '${sensorid}'
+      AND "timestamp" > '${search_ymd} 00:00:00'
+      GROUP BY grid.t5
+      ORDER BY grid.t5
+      LIMIT ${limit_n}
+  `;
+   
     //
-    console.log(queryStr);
 
     await client.query(queryStr, function (err, res) {
       if (err) {
@@ -65,6 +73,7 @@ module.exports.getdata = async function getdata(sensorid, dd, h = 8, days, cb) {
       var j = 0;
       var ymd = "";
       var ymd2 = "";
+      var max_avg_value = 0;
       for (var i = 0; i < res.rows.length; i++) {
         ymd = moment(res.rows[i].t5)
           .add(8, "h")
@@ -82,13 +91,16 @@ module.exports.getdata = async function getdata(sensorid, dd, h = 8, days, cb) {
           .toISOString()
           .split("T")[1]
           .substring(0, 5);
+        if (Number(res.rows[i].avg_value) > max_avg_value) {
+          max_avg_value = res.rows[i].avg_value;
+        }
         val_data[ymd][j] = res.rows[i].avg_value;
         ymd2 = ymd;
         j++;
       }
       results["time"] = time_data;
       results["val"] = val_data;
-
+      results["max_avg_value"] = max_avg_value;
       cb(results);
     });
 
@@ -163,9 +175,11 @@ module.exports.chartHTML = function chartHTML(data_arr, chart_tit) {
 			  scales: {
 				yAxes: [{
 				  ticks: {
-					beginAtZero: true
+					beginAtZero: true,
+          max: ${Math.round(data_arr["max_avg_value"] * 1.1)}
 				  }
 				}]
+        
 			  }
 			}`;
 

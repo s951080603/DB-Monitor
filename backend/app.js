@@ -280,7 +280,7 @@ app.get("/charts", function (req, resp) {
 
       let select =
         date_script +
-        '<form id="form1" action="http://chiu.hopto.org:8963/charts" method="get">\n';
+        '<form id="form1" action="http://140.138.179.222:8963/charts" method="get">\n';
       select +=
         '請選擇感測器: <select name="sensor_select" id="sensor_select">\n';
 
