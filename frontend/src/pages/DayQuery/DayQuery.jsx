@@ -8,7 +8,7 @@ const DayQuery = () => {
         width: "100%",
         height: "90vh",
       }}
-      src="http://140.138.179.222:8963/charts"
+      src="http://chiu.hopto.org:8963/charts"
     ></iframe>
   );
 };
