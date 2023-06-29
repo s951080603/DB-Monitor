@@ -263,7 +263,9 @@ const Home = () => {
             newOptions.plugins.title.text = tvocData.find(
               (row) => row.mac == devEUI.toLowerCase()
             )?.locDesc;
-            newOptions.plugins.subtitle.text = devEUI;
+            newOptions.plugins.subtitle.text = `${devEUI}  ( ${
+              tvocData.find((row) => row.mac == devEUI.toLowerCase())?.voltage
+            }v )`;
 
             newOptions.scales.x.min = moment(
               Date.now() - timeIntervalTVOC * 60 * 60 * 1000
@@ -314,8 +316,6 @@ const Home = () => {
                           })),
                         backgroundColor: colorLineList[index][0],
                         borderColor: colorLineList[index][1],
-                        maxBarThickness: 20,
-                        minBarLength: 5,
                         yAxisID: "y1",
                       },
                     ],
@@ -394,7 +394,9 @@ const Home = () => {
             newOptions.plugins.title.text = pm25Data.find(
               (row) => row.mac == devEUI.toLowerCase()
             )?.locDesc;
-            newOptions.plugins.subtitle.text = devEUI;
+            newOptions.plugins.subtitle.text = `${devEUI}  ( ${
+              pm25Data.find((row) => row.mac == devEUI.toLowerCase())?.voltage
+            }v )`;
             newOptions.scales.y.max = Math.round(
               Math.max(...pm25Data.map((row) => row.value)) * 1.1
             );
@@ -440,8 +442,6 @@ const Home = () => {
                           })),
                         backgroundColor: colorLineList[index][0],
                         borderColor: colorLineList[index][1],
-                        maxBarThickness: 20,
-                        minBarLength: 5,
                         yAxisID: "y1",
                       },
                     ],
