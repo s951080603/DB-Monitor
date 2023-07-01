@@ -265,7 +265,7 @@ const Home = () => {
             )?.locDesc;
             newOptions.plugins.subtitle.text = `${devEUI}  ( ${
               tvocData.find((row) => row.mac == devEUI.toLowerCase())?.voltage
-            }v )`;
+            }V )`;
 
             newOptions.scales.x.min = moment(
               Date.now() - timeIntervalTVOC * 60 * 60 * 1000
@@ -396,7 +396,7 @@ const Home = () => {
             )?.locDesc;
             newOptions.plugins.subtitle.text = `${devEUI}  ( ${
               pm25Data.find((row) => row.mac == devEUI.toLowerCase())?.voltage
-            }v )`;
+            }V )`;
             newOptions.scales.y.max = Math.round(
               Math.max(...pm25Data.map((row) => row.value)) * 1.1
             );
