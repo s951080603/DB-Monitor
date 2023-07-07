@@ -155,6 +155,47 @@ app.get("/record", async (req, res) => {
 });
 */
 
+app.get("/record/ma", async (req, res) => {
+  try {
+    const startTime = req.query.startTime;
+    const endTime = Math.floor(Date.now() / 1000);
+    const numberOfSamples = req.query.numberOfSamples || 5;
+    const subtype = req.query.subtype;
+    // id, lastDate, timeRangeOfChart, numberOfCharts, cb
+
+    const maData = await parseData(
+      `SELECT mac, sensorid, "timestamp", avg_value,
+        ROUND(AVG(avg_value) OVER (
+          PARTITION BY sensorid
+          ORDER BY "timestamp"
+          ROWS BETWEEN ${numberOfSamples - 1} PRECEDING AND CURRENT ROW
+        ), 3) AS moving_average
+      FROM (
+        SELECT re.mac, t.sensorid ,grid."timestamp", ROUND(AVG(CASE WHEN t.sensorid IN (
+          SELECT DISTINCT r1.sensorid
+          FROM records r1, registedsnrs re, subtype s
+          WHERE r1.sensorid = re.sensorid
+            AND s.stypeid = re.stypeid
+            AND s."Desc" = 'TVOC'
+          ) THEN t.value * 1000 ELSE t.value END), 3) AS avg_value
+          FROM (
+          SELECT generate_series('${startTime}', to_timestamp(${endTime})::timestamp without time zone, interval '5 min') AS "timestamp"
+          ) grid
+          LEFT JOIN records t ON t."timestamp" >= grid."timestamp"
+            AND t."timestamp" < grid."timestamp" + interval '5 min'
+          INNER JOIN registedsnrs re ON re.sensorid = t.sensorid 
+          INNER JOIN subtype s ON s."Desc" = ${subtype} AND s.stypeid = re.stypeid
+          GROUP BY re.mac, t.sensorid, grid."timestamp"
+      ) subquery
+      ORDER BY mac, sensorid, "timestamp"`
+    );
+
+    res.json(maData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Interval Server Error");
+  }
+});
 app.get("/record", async (req, res) => {
   try {
     const startTime = req.query.startTime;
@@ -280,7 +321,7 @@ app.get("/charts", function (req, resp) {
 
       let select =
         date_script +
-        '<form id="form1" action="http://140.138.179.222:8963/charts" method="get">\n';
+        '<form id="form1" action="http://chiu.hopto.org:8963/charts" method="get">\n';
       select +=
         '請選擇感測器: <select name="sensor_select" id="sensor_select">\n';
 

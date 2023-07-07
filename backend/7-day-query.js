@@ -26,6 +26,7 @@ module.exports.getLoc = async function getLoc(sid, cb) {
   }
 };
 
+// id, lastDate, timeRangeOfChart, numberOfCharts, cb
 module.exports.getdata = async function getdata(sensorid, dd, h = 8, days, cb) {
   try {
     const client = await pool.connect();
@@ -59,7 +60,7 @@ module.exports.getdata = async function getdata(sensorid, dd, h = 8, days, cb) {
       ORDER BY grid.t5
       LIMIT ${limit_n}
   `;
-   
+
     //
 
     await client.query(queryStr, function (err, res) {
