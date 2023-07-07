@@ -64,12 +64,38 @@ const fetchRecordsInTimeInterval = async (timeInterval = 8) => {
   }
 };
 
+const fetchRecordsMovingAverage = async (
+  timeInterval = 8,
+  numberOfSamples = 5,
+  subtype = "TVOC"
+) => {
+  const startTime = new Date(
+    Date.now() - timeInterval * 60 * 60 * 1000
+  ).toLocaleString("zh-TW", {
+    timeZone: "Asia/Taipei",
+    hourCycle: "h23",
+  });
+  try {
+    const response = await fetch(
+      `http://chiu.hopto.org:8963/record/ma?startTime=${startTime}&numberOfSamples=${numberOfSamples}&subtype='${subtype}'`
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const Home = () => {
   const [timeIntervalPM25Data, setTimeIntervalPM25Data] = useState([]);
   const [timeIntervalTVOCData, setTimeIntervalTVOCData] = useState([]);
+  const [movingAveragePM25Data, setMovingAveragePM25Data] = useState([]);
+  const [movingAverageTVOCData, setMovingAverageTVOCData] = useState([]);
 
   const [timeIntervalTVOC, setTimeIntervalTVOC] = useState(8);
   const [timeIntervalPM25, setTimeIntervalPM25] = useState(8);
+  const [numberOfSamplesTVOC, setNumberOfSamplesTVOC] = useState(5);
+  const [numberOfSamplesPM25, setNumberOfSamplesPM25] = useState(5);
 
   const [timeIntervalUnitTVOC, setTimeIntervalUnitTVOC] = useState(1);
   const [timeIntervalUnitPM25, setTimeIntervalUnitPM25] = useState(1);
@@ -130,6 +156,25 @@ const Home = () => {
         console.log(error);
       });
   }, [timeIntervalPM25]);
+
+  useEffect(() => {
+    fetchRecordsMovingAverage(timeIntervalTVOC, numberOfSamplesTVOC, "TVOC")
+      .then((data) => {
+        setMovingAverageTVOCData(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [timeIntervalTVOC, numberOfSamplesTVOC]);
+  useEffect(() => {
+    fetchRecordsMovingAverage(timeIntervalPM25, numberOfSamplesPM25, "PM2.5")
+      .then((data) => {
+        setMovingAveragePM25Data(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [timeIntervalPM25, numberOfSamplesPM25]);
 
   useEffect(() => {
     order.forEach((loc) => {
@@ -293,6 +338,20 @@ const Home = () => {
                   data={{
                     datasets: [
                       {
+                        type: "line",
+                        label: "TVOC MA",
+                        data: movingAverageTVOCData
+                          ?.filter((row) => row.mac == devEUI.toLowerCase())
+                          .map((row) => ({
+                            x: moment(new Date(row.timestamp)),
+                            y: row.moving_average,
+                          })),
+                        backgroundColor: colorLineList[index][0],
+                        borderColor: colorLineList[index][1],
+                        z: 10,
+                        yAxisID: "y",
+                      },
+                      {
                         label: "TVOC",
                         data: tvocData
                           .filter((row) => row.mac == devEUI.toLowerCase())
@@ -420,6 +479,19 @@ const Home = () => {
                   data={{
                     datasets: [
                       {
+                        type: "line",
+                        label: "PM2.5 MA",
+                        data: movingAveragePM25Data
+                          ?.filter((row) => row.mac == devEUI.toLowerCase())
+                          .map((row) => ({
+                            x: moment(new Date(row.timestamp)),
+                            y: row.moving_average,
+                          })),
+                        backgroundColor: colorLineList[index][0],
+                        borderColor: colorLineList[index][1],
+                        yAxisID: "y",
+                      },
+                      {
                         label: "PM2.5",
                         data: pm25Data
                           .filter((row) => row.mac == devEUI.toLowerCase())
@@ -429,6 +501,7 @@ const Home = () => {
                           })),
                         backgroundColor: colorList[index],
                         minBarLength: 5,
+                        yAxisID: "y",
                         maxBarThickness: 20,
                       },
                       {
