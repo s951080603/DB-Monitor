@@ -6,13 +6,13 @@
   justify-content: center;
   align-items: center;
 }
-.home .tvoc-chart-group {
+.home .chart-group {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
 }
-.home .tvoc-chart-group .bar-chart {
+.home .chart-group .bar-chart {
   position: relative;
   height: 350px;
   width: 400px;
