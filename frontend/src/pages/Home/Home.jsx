@@ -113,6 +113,17 @@ const fetchRecordsMovingAverage = async (
   }
 };
 
+const fetchMacList = async (subtype = "TVOC") => {
+  try {
+    const response = await fetch(
+      `http://chiu.hopto.org:8963/record/mac?subtype=${subtype}`
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
 const Home = () => {
   const [timeIntervalPM25Data, setTimeIntervalPM25Data] = useState([]);
   const [timeIntervalTVOCData, setTimeIntervalTVOCData] = useState([]);
@@ -168,6 +179,7 @@ const Home = () => {
       },
     },
   };
+
   useEffect(() => {
     fetchRecordsInTimeInterval(timeIntervalTVOC, "TVOC")
       .then((data) => {
@@ -219,19 +231,6 @@ const Home = () => {
         console.log(error);
       });
   }, [timeIntervalPM25, numberOfSamplesPM25]);
-
-  useEffect(() => {
-    order.forEach((loc) => {
-      tvocSensorMap.set(
-        timeIntervalTVOCData?.find((row) => row.locDesc == loc)?.mac,
-        loc
-      );
-      pm25SensorMap.set(
-        timeIntervalPM25Data?.find((row) => row.locDesc == loc)?.mac,
-        loc
-      );
-    });
-  }, [timeIntervalTVOCData, timeIntervalPM25Data]);
 
   const handleChangeTVOC = (event, newTimeInterval) => {
     setTimeIntervalTVOC(newTimeInterval);
@@ -349,92 +348,92 @@ const Home = () => {
         </div>
       </div>
 
-      <section className="tvoc-chart-group">
-        {[...tvocSensorMap.keys()]
-          .filter((key) => key != undefined)
-          .map((devEUI, index) => {
-            const newOptions = JSON.parse(JSON.stringify(options));
+      <section className="chart-group">
+        {order.map((locDesc, index) => {
+          const newOptions = JSON.parse(JSON.stringify(options));
 
-            newOptions.plugins.title.text = timeIntervalTVOCData.find(
-              (row) => row.mac == devEUI.toLowerCase()
-            )?.locDesc;
+          newOptions.plugins.title.text = locDesc;
 
-            newOptions.plugins.subtitle.text = `${devEUI}  ( ${
-              timeIntervalTVOCData.find(
-                (row) => row.mac == devEUI.toLowerCase()
-              )?.voltage
-            }V )`;
+          newOptions.plugins.subtitle.text = `${
+            timeIntervalTVOCData.find((row) => row.locDesc == locDesc)?.mac
+          }  ( ${
+            timeIntervalTVOCData.find((row) => row.locDesc == locDesc)?.voltage
+          }V )`;
 
-            newOptions.scales.x.min = moment(
-              Date.now() - timeIntervalTVOC * 60 * 60 * 1000
-            );
-            newOptions.scales.y1.max = Math.round(
-              Math.max(
-                ...timeIntervalTempTVOCData
-                  ?.filter((row) =>
-                    tvocSensorList.includes(row.mac.toUpperCase())
-                  )
-                  .map((row) => row.value)
-              ) * 1.1
-            );
+          newOptions.scales.x.min = moment(
+            Date.now() - timeIntervalTVOC * 60 * 60 * 1000
+          );
 
-            newOptions.scales.y.max = Math.round(
-              Math.max(...timeIntervalTVOCData.map((row) => row.value)) * 1.1
-            );
+          newOptions.scales.y1.max = Math.round(
+            timeIntervalTempTVOCData.reduce((max, row) => {
+              const value = row.value;
+              return value > max ? value : max;
+            }, -Infinity) * 1.1
+          );
 
-            return (
-              <div className="bar-chart" key={devEUI}>
-                <Chart
-                  type="bar"
-                  options={newOptions}
-                  data={{
-                    datasets: [
-                      {
-                        type: "line",
-                        label: "TVOC MA",
-                        data: movingAverageTVOCData
-                          ?.filter((row) => row.mac == devEUI.toLowerCase())
-                          .map((row) => ({
-                            x: moment(new Date(row.timestamp)),
-                            y: row.moving_average,
-                          })),
-                        backgroundColor: colorLineList[index][2],
-                        borderColor: colorLineList[index][2],
-                        z: 10,
-                        yAxisID: "y",
-                      },
-                      {
-                        label: "TVOC",
-                        data: timeIntervalTVOCData
-                          ?.filter((row) => row.mac == devEUI.toLowerCase())
-                          .map((row) => ({
-                            x: moment(new Date(row.timestamp)),
-                            y: row.value,
-                          })),
-                        backgroundColor: colorList[index],
-                        maxBarThickness: 20,
-                        minBarLength: 5,
-                        yAxisID: "y",
-                      },
-                      {
-                        type: "line",
-                        label: "Temperature",
-                        data: timeIntervalTempTVOCData
-                          ?.filter((row) => row.mac == devEUI.toLowerCase())
-                          .map((row) => ({
-                            x: moment(new Date(row.timestamp)),
-                            y: row.value,
-                          })),
-                        backgroundColor: colorLineList[index][0],
-                        borderColor: colorLineList[index][1],
-                        yAxisID: "y1",
-                      },
-                    ],
-                  }}
-                />
-              </div>
-            );
-          })}
+          newOptions.scales.y.max = Math.round(
+            timeIntervalTVOCData.reduce((max, row) => {
+              const value = row.value;
+              return value > max ? value : max;
+            }, -Infinity) * 1.1
+          );
+
+          return (
+            <div className="bar-chart" key={locDesc}>
+              <Chart
+                type="bar"
+                options={newOptions}
+                data={{
+                  datasets: [
+                    {
+                      type: "line",
+                      label: "TVOC MA",
+                      data: movingAverageTVOCData
+                        ?.filter((row) => row.locDesc == locDesc)
+                        .map((row) => ({
+                          x: moment(new Date(row.timestamp)),
+                          y: row.moving_average,
+                        })),
+                      backgroundColor: colorLineList[index][2],
+                      borderColor: colorLineList[index][2],
+                      pointStyle: false,
+                      z: 10,
+                      yAxisID: "y",
+                    },
+
+                    {
+                      type: "line",
+                      label: "Temperature",
+                      data: timeIntervalTempTVOCData
+                        ?.filter((row) => row.locDesc == locDesc)
+                        .map((row) => ({
+                          x: moment(new Date(row.timestamp)),
+                          y: row.value,
+                        })),
+                      borderColor: colorLineList[index][0],
+                      backgroundColor: colorLineList[index][0],
+                      pointStyle: false,
+                      yAxisID: "y1",
+                    },
+                    {
+                      label: "TVOC",
+                      data: timeIntervalTVOCData
+                        ?.filter((row) => row.locDesc == locDesc)
+                        .map((row) => ({
+                          x: moment(new Date(row.timestamp)),
+                          y: row.value,
+                        })),
+                      backgroundColor: colorList[index],
+                      maxBarThickness: 20,
+                      minBarLength: 5,
+                      yAxisID: "y",
+                    },
+                  ],
+                }}
+              />
+            </div>
+          );
+        })}
       </section>
 
       <div className="chart-header">
@@ -519,89 +518,88 @@ const Home = () => {
           </form>
         </div>
       </div>
-      <section className="tvoc-chart-group">
-        {[...pm25SensorMap.keys()]
-          .filter((key) => key != undefined)
-          .map((devEUI, index) => {
-            const newOptions = JSON.parse(JSON.stringify(options));
+      <section className="chart-group">
+        {order.map((locDesc, index) => {
+          const newOptions = JSON.parse(JSON.stringify(options));
 
-            newOptions.plugins.title.text = timeIntervalPM25Data.find(
-              (row) => row.mac == devEUI.toLowerCase()
-            )?.locDesc;
-            newOptions.plugins.subtitle.text = `${devEUI}  ( ${
-              timeIntervalPM25Data.find(
-                (row) => row.mac == devEUI.toLowerCase()
-              )?.voltage
-            }V )`;
+          newOptions.plugins.title.text = locDesc;
 
-            newOptions.scales.y.max = Math.round(
-              Math.max(...timeIntervalPM25Data.map((row) => row.value)) * 1.1
-            );
+          newOptions.plugins.subtitle.text = `${
+            timeIntervalPM25Data.find((row) => row.locDesc == locDesc)?.mac
+          }  ( ${
+            timeIntervalPM25Data.find((row) => row.locDesc == locDesc)?.voltage
+          }V )`;
 
-            newOptions.scales.y1.max = Math.round(
-              Math.max(
-                ...timeIntervalTempPM25Data
-                  ?.filter((row) =>
-                    pm25SensorList.includes(row.mac.toUpperCase())
-                  )
-                  .map((row) => row.value)
-              ) * 1.1
-            );
-            newOptions.scales.x.min = moment(
-              Date.now() - timeIntervalPM25 * 60 * 60 * 1000
-            );
-            return (
-              <div className="bar-chart" key={devEUI}>
-                <Chart
-                  type="bar"
-                  options={newOptions}
-                  data={{
-                    datasets: [
-                      {
-                        type: "line",
-                        label: "PM2.5 MA",
-                        data: movingAveragePM25Data
-                          ?.filter((row) => row.mac == devEUI.toLowerCase())
-                          .map((row) => ({
-                            x: moment(new Date(row.timestamp)),
-                            y: row.moving_average,
-                          })),
-                        backgroundColor: colorLineList[index][2],
-                        borderColor: colorLineList[index][2],
-                        yAxisID: "y",
-                      },
-                      {
-                        label: "PM2.5",
-                        data: timeIntervalPM25Data
-                          ?.filter((row) => row.mac == devEUI.toLowerCase())
-                          .map((row) => ({
-                            x: moment(new Date(row.timestamp)),
-                            y: row.value,
-                          })),
-                        backgroundColor: colorList[index],
-                        minBarLength: 5,
-                        yAxisID: "y",
-                        maxBarThickness: 20,
-                      },
-                      {
-                        type: "line",
-                        label: "Temperature",
-                        data: timeIntervalTempPM25Data
-                          ?.filter((row) => row.mac == devEUI.toLowerCase())
-                          .map((row) => ({
-                            x: moment(new Date(row.timestamp)),
-                            y: row.value,
-                          })),
-                        backgroundColor: colorLineList[index][0],
-                        borderColor: colorLineList[index][1],
-                        yAxisID: "y1",
-                      },
-                    ],
-                  }}
-                />
-              </div>
-            );
-          })}
+          newOptions.scales.y.max = Math.round(
+            timeIntervalPM25Data.reduce((max, row) => {
+              const value = row.value;
+              return value > max ? value : max;
+            }, -Infinity) * 1.1
+          );
+
+          newOptions.scales.y1.max = Math.round(
+            timeIntervalTempPM25Data.reduce((max, row) => {
+              const value = row.value;
+              return value > max ? value : max;
+            }, -Infinity) * 1.1
+          );
+          newOptions.scales.x.min = moment(
+            Date.now() - timeIntervalPM25 * 60 * 60 * 1000
+          );
+          return (
+            <div className="bar-chart" key={locDesc}>
+              <Chart
+                type="bar"
+                options={newOptions}
+                data={{
+                  datasets: [
+                    {
+                      type: "line",
+                      label: "PM2.5 MA",
+                      data: movingAveragePM25Data
+                        ?.filter((row) => row.locDesc == locDesc)
+                        .map((row) => ({
+                          x: moment(new Date(row.timestamp)),
+                          y: row.moving_average,
+                        })),
+                      borderColor: colorLineList[index][2],
+                      backgroundColor: colorLineList[index][2],
+                      pointStyle: false,
+                      yAxisID: "y",
+                    },
+                    {
+                      type: "line",
+                      label: "Temperature",
+                      data: timeIntervalTempPM25Data
+                        ?.filter((row) => row.locDesc == locDesc)
+                        .map((row) => ({
+                          x: moment(new Date(row.timestamp)),
+                          y: row.value,
+                        })),
+                      borderColor: colorLineList[index][0],
+                      backgroundColor: colorLineList[index][0],
+                      pointStyle: false,
+                      yAxisID: "y1",
+                    },
+                    {
+                      label: "PM2.5",
+                      data: timeIntervalPM25Data
+                        ?.filter((row) => row.locDesc == locDesc)
+                        .map((row) => ({
+                          x: moment(new Date(row.timestamp)),
+                          y: row.value,
+                        })),
+                      backgroundColor: colorList[index],
+                      minBarLength: 5,
+                      yAxisID: "y",
+                      maxBarThickness: 20,
+                    },
+                  ],
+                }}
+              />
+            </div>
+          );
+        })}
       </section>
     </section>
   );
