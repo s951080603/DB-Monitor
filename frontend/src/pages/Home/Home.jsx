@@ -46,7 +46,10 @@ ChartJS.register(
 const tvocSensorMap = new Map();
 const pm25SensorMap = new Map();
 
-const fetchRecordsInTimeInterval = async (timeInterval = 8) => {
+const fetchRecordsInTimeInterval = async (
+  timeInterval = 8,
+  subtype = "TVOC"
+) => {
   const startTime = new Date(
     Date.now() - timeInterval * 60 * 60 * 1000
   ).toLocaleString("zh-TW", {
@@ -55,7 +58,30 @@ const fetchRecordsInTimeInterval = async (timeInterval = 8) => {
   });
   try {
     const response = await fetch(
-      `http://chiu.hopto.org:8963/record?startTime=${startTime}`
+      `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=${subtype}`
+    );
+    console.log(
+      `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=${subtype}`
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+const fetchTempRecordsInTimeInterval = async (timeInterval = 8, sensorType) => {
+  const startTime = new Date(
+    Date.now() - timeInterval * 60 * 60 * 1000
+  ).toLocaleString("zh-TW", {
+    timeZone: "Asia/Taipei",
+    hourCycle: "h23",
+  });
+  try {
+    const response = await fetch(
+      `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=Temperature&sensorType=${sensorType}`
+    );
+    console.log(
+      `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=Temperature&sensorType=${sensorType}`
     );
     const data = await response.json();
     return data;
@@ -77,8 +103,9 @@ const fetchRecordsMovingAverage = async (
   });
   try {
     const response = await fetch(
-      `http://chiu.hopto.org:8963/record/ma?startTime=${startTime}&numberOfSamples=${numberOfSamples}&subtype='${subtype}'`
+      `http://chiu.hopto.org:8963/record/ma?startTime=${startTime}&numberOfSamples=${numberOfSamples}&subtype=${subtype}`
     );
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -89,6 +116,9 @@ const fetchRecordsMovingAverage = async (
 const Home = () => {
   const [timeIntervalPM25Data, setTimeIntervalPM25Data] = useState([]);
   const [timeIntervalTVOCData, setTimeIntervalTVOCData] = useState([]);
+  const [timeIntervalTempPM25Data, setTimeIntervalTempPM25Data] = useState([]);
+  const [timeIntervalTempTVOCData, setTimeIntervalTempTVOCData] = useState([]);
+
   const [movingAveragePM25Data, setMovingAveragePM25Data] = useState([]);
   const [movingAverageTVOCData, setMovingAverageTVOCData] = useState([]);
 
@@ -139,18 +169,32 @@ const Home = () => {
     },
   };
   useEffect(() => {
-    fetchRecordsInTimeInterval(timeIntervalTVOC)
+    fetchRecordsInTimeInterval(timeIntervalTVOC, "TVOC")
       .then((data) => {
         setTimeIntervalTVOCData(data);
       })
       .catch((error) => {
         console.log(error);
       });
+    fetchTempRecordsInTimeInterval(timeIntervalTVOC, "TVOC")
+      .then((data) => {
+        setTimeIntervalTempTVOCData(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }, [timeIntervalTVOC]);
   useEffect(() => {
-    fetchRecordsInTimeInterval(timeIntervalPM25)
+    fetchRecordsInTimeInterval(timeIntervalPM25, "PM2.5")
       .then((data) => {
         setTimeIntervalPM25Data(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    fetchTempRecordsInTimeInterval(timeIntervalPM25, "PM2.5")
+      .then((data) => {
+        setTimeIntervalTempPM25Data(data);
       })
       .catch((error) => {
         console.log(error);
@@ -179,15 +223,11 @@ const Home = () => {
   useEffect(() => {
     order.forEach((loc) => {
       tvocSensorMap.set(
-        timeIntervalTVOCData
-          .filter((row) => row.Desc == "TVOC")
-          .find((row) => row.locDesc == loc)?.mac,
+        timeIntervalTVOCData?.find((row) => row.locDesc == loc)?.mac,
         loc
       );
       pm25SensorMap.set(
-        timeIntervalTVOCData
-          .filter((row) => row.Desc == "PM2.5")
-          .find((row) => row.locDesc == loc)?.mac,
+        timeIntervalPM25Data?.find((row) => row.locDesc == loc)?.mac,
         loc
       );
     });
@@ -315,29 +355,23 @@ const Home = () => {
           .map((devEUI, index) => {
             const newOptions = JSON.parse(JSON.stringify(options));
 
-            const tvocData = timeIntervalTVOCData.filter(
-              (row) => row.Desc == "TVOC"
-            );
-
-            const temperatureData = timeIntervalTVOCData.filter(
-              (row) => row.Desc == "Temperature"
-            );
-
-            newOptions.plugins.title.text = tvocData.find(
+            newOptions.plugins.title.text = timeIntervalTVOCData.find(
               (row) => row.mac == devEUI.toLowerCase()
             )?.locDesc;
+
             newOptions.plugins.subtitle.text = `${devEUI}  ( ${
-              tvocData.find((row) => row.mac == devEUI.toLowerCase())?.voltage
+              timeIntervalTVOCData.find(
+                (row) => row.mac == devEUI.toLowerCase()
+              )?.voltage
             }V )`;
 
             newOptions.scales.x.min = moment(
               Date.now() - timeIntervalTVOC * 60 * 60 * 1000
             );
-
             newOptions.scales.y1.max = Math.round(
               Math.max(
-                ...temperatureData
-                  .filter((row) =>
+                ...timeIntervalTempTVOCData
+                  ?.filter((row) =>
                     tvocSensorList.includes(row.mac.toUpperCase())
                   )
                   .map((row) => row.value)
@@ -345,7 +379,7 @@ const Home = () => {
             );
 
             newOptions.scales.y.max = Math.round(
-              Math.max(...tvocData.map((row) => row.value)) * 1.1
+              Math.max(...timeIntervalTVOCData.map((row) => row.value)) * 1.1
             );
 
             return (
@@ -371,8 +405,8 @@ const Home = () => {
                       },
                       {
                         label: "TVOC",
-                        data: tvocData
-                          .filter((row) => row.mac == devEUI.toLowerCase())
+                        data: timeIntervalTVOCData
+                          ?.filter((row) => row.mac == devEUI.toLowerCase())
                           .map((row) => ({
                             x: moment(new Date(row.timestamp)),
                             y: row.value,
@@ -385,8 +419,8 @@ const Home = () => {
                       {
                         type: "line",
                         label: "Temperature",
-                        data: temperatureData
-                          .filter((row) => row.mac == devEUI.toLowerCase())
+                        data: timeIntervalTempTVOCData
+                          ?.filter((row) => row.mac == devEUI.toLowerCase())
                           .map((row) => ({
                             x: moment(new Date(row.timestamp)),
                             y: row.value,
@@ -491,27 +525,23 @@ const Home = () => {
           .map((devEUI, index) => {
             const newOptions = JSON.parse(JSON.stringify(options));
 
-            const pm25Data = timeIntervalPM25Data.filter(
-              (row) => row.Desc == "PM2.5"
-            );
-
-            const temperatureData = timeIntervalPM25Data.filter(
-              (row) => row.Desc == "Temperature"
-            );
-
-            newOptions.plugins.title.text = pm25Data.find(
+            newOptions.plugins.title.text = timeIntervalPM25Data.find(
               (row) => row.mac == devEUI.toLowerCase()
             )?.locDesc;
             newOptions.plugins.subtitle.text = `${devEUI}  ( ${
-              pm25Data.find((row) => row.mac == devEUI.toLowerCase())?.voltage
+              timeIntervalPM25Data.find(
+                (row) => row.mac == devEUI.toLowerCase()
+              )?.voltage
             }V )`;
+
             newOptions.scales.y.max = Math.round(
-              Math.max(...pm25Data.map((row) => row.value)) * 1.1
+              Math.max(...timeIntervalPM25Data.map((row) => row.value)) * 1.1
             );
+
             newOptions.scales.y1.max = Math.round(
               Math.max(
-                ...temperatureData
-                  .filter((row) =>
+                ...timeIntervalTempPM25Data
+                  ?.filter((row) =>
                     pm25SensorList.includes(row.mac.toUpperCase())
                   )
                   .map((row) => row.value)
@@ -542,8 +572,8 @@ const Home = () => {
                       },
                       {
                         label: "PM2.5",
-                        data: pm25Data
-                          .filter((row) => row.mac == devEUI.toLowerCase())
+                        data: timeIntervalPM25Data
+                          ?.filter((row) => row.mac == devEUI.toLowerCase())
                           .map((row) => ({
                             x: moment(new Date(row.timestamp)),
                             y: row.value,
@@ -556,8 +586,8 @@ const Home = () => {
                       {
                         type: "line",
                         label: "Temperature",
-                        data: temperatureData
-                          .filter((row) => row.mac == devEUI.toLowerCase())
+                        data: timeIntervalTempPM25Data
+                          ?.filter((row) => row.mac == devEUI.toLowerCase())
                           .map((row) => ({
                             x: moment(new Date(row.timestamp)),
                             y: row.value,
