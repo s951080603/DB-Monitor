@@ -164,14 +164,14 @@ app.get("/record/ma", async (req, res) => {
     // id, lastDate, timeRangeOfChart, numberOfCharts, cb
 
     const maData = await parseData(
-      `SELECT mac, sensorid, "timestamp", avg_value,
+      `SELECT mac, sensorid, "timestamp", "locDesc", avg_value,
         ROUND(AVG(avg_value) OVER (
           PARTITION BY sensorid
           ORDER BY "timestamp"
           ROWS BETWEEN ${numberOfSamples - 1} PRECEDING AND CURRENT ROW
         ), 3) AS moving_average
       FROM (
-        SELECT re.mac, t.sensorid ,grid."timestamp", ROUND(AVG(CASE WHEN t.sensorid IN (
+        SELECT re.mac, t.sensorid ,grid."timestamp", l."locDesc", ROUND(AVG(CASE WHEN t.sensorid IN (
           SELECT DISTINCT r1.sensorid
           FROM records r1, registedsnrs re, subtype s
           WHERE r1.sensorid = re.sensorid
@@ -185,9 +185,10 @@ app.get("/record/ma", async (req, res) => {
             AND t."timestamp" < grid."timestamp" + interval '5 min'
           INNER JOIN registedsnrs re ON re.sensorid = t.sensorid 
           INNER JOIN subtype s ON s."Desc" = '${subtype}' AND s.stypeid = re.stypeid
-          GROUP BY re.mac, t.sensorid, grid."timestamp"
+          INNER JOIN locations l ON l.locid = re.locid
+          GROUP BY re.mac, t.sensorid, grid."timestamp", l."locDesc"
       ) subquery
-      ORDER BY mac, sensorid, "timestamp"`
+      ORDER BY mac, sensorid, "timestamp", "locDesc"`
     );
 
     res.json(maData);
@@ -257,10 +258,10 @@ app.get("/record/:devEUI", async (req, res) => {
   try {
     const devEUI = req.params.devEUI;
     formatData = await parseData(
-      `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*,locations.locid , locations."locDesc" \
-      FROM RegistedSnrs \
-      INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid \
-      INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid\
+      `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*,locations.locid , locations."locDesc"
+      FROM RegistedSnrs
+      INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid
+      INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid INNER JOIN locations ON RegistedSnrs.locid = locations.locid
       WHERE RegistedSnrs.sensorid IN (select sensorid from registedsnrs where mac = '${devEUI}')
       ORDER BY Records."timestamp" DESC`
     );
@@ -271,7 +272,6 @@ app.get("/record/:devEUI", async (req, res) => {
     res.status(500).send("Interval Server Error");
   }
 });
-
 app.get("/location", async (req, res) => {
   try {
     const result = await client.query("SELECT * FROM locations ORDER BY locid");
