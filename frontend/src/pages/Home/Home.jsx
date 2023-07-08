@@ -193,10 +193,12 @@ const Home = () => {
     });
   }, [timeIntervalTVOCData, timeIntervalPM25Data]);
 
-  const handleChange = (event, newTimeInterval) => {
+  const handleChangeTVOC = (event, newTimeInterval) => {
     setTimeIntervalTVOC(newTimeInterval);
   };
-
+  const handleChangePM25 = (event, newTimeInterval) => {
+    setTimeIntervalPM25(newTimeInterval);
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -206,34 +208,32 @@ const Home = () => {
       jsonForm[key] = value;
     });
 
-    setTimeIntervalTVOC(
-      jsonForm.timeIntervalTVOC * jsonForm.timeIntervalUnitTVOC
-    );
+    jsonForm.timeIntervalTVOC != undefined
+      ? setTimeIntervalTVOC(
+          jsonForm.timeIntervalTVOC * jsonForm.timeIntervalUnitTVOC
+        )
+      : setTimeIntervalPM25(
+          jsonForm.timeIntervalPM25 * jsonForm.timeIntervalUnitPM25
+        );
   };
 
-  const handleChange2 = (event, newTimeInterval) => {
-    setTimeIntervalPM25(newTimeInterval);
-  };
-
-  const handleSubmit2 = (e) => {
+  const handleSubmitMA = (e) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     let jsonForm = {};
-
     formData.forEach((value, key) => {
       jsonForm[key] = value;
     });
-
-    setTimeIntervalPM25(
-      jsonForm.timeIntervalPM25 * jsonForm.timeIntervalUnitPM25
-    );
+    jsonForm.numberOfSamplesTVOC != undefined
+      ? setNumberOfSamplesTVOC(jsonForm.numberOfSamplesTVOC)
+      : setNumberOfSamplesPM25(jsonForm.numberOfSamplesPM25);
   };
 
-  const handleSelect = (e) => {
+  const handleSelectTVOC = (e) => {
     setTimeIntervalUnitTVOC(e.target.value);
   };
 
-  const handleSelect2 = (e) => {
+  const handleSelectPM25 = (e) => {
     setTimeIntervalUnitPM25(e.target.value);
   };
 
@@ -241,12 +241,30 @@ const Home = () => {
     <section className="home">
       <div className="chart-header">
         <h3>TVOC Data</h3>
+        <form onSubmit={handleSubmitMA} className="ma-form">
+          <TextField
+            id="outlined-number"
+            type="number"
+            required
+            name="numberOfSamplesTVOC"
+            sx={{ width: 170 }}
+            label="MA Number Of Samples"
+            size="small"
+            defaultValue={5}
+            InputProps={{
+              inputProps: { min: 1 },
+            }}
+          />
+          <Button type="submit" variant="contained" className="submit">
+            apply
+          </Button>
+        </form>
         <div className="time-interval-selector">
           <ToggleButtonGroup
             color="primary"
             value={timeIntervalTVOC}
             exclusive
-            onChange={handleChange}
+            onChange={handleChangeTVOC}
             aria-label="Platform"
             className="button-group"
           >
@@ -275,7 +293,7 @@ const Home = () => {
               name="timeIntervalUnitTVOC"
               value={timeIntervalUnitTVOC}
               required
-              onChange={handleSelect}
+              onChange={handleSelectTVOC}
               sx={{ height: 40, width: 100 }}
             >
               <MenuItem value={1 / 60}>Mins</MenuItem>
@@ -346,8 +364,8 @@ const Home = () => {
                             x: moment(new Date(row.timestamp)),
                             y: row.moving_average,
                           })),
-                        backgroundColor: colorLineList[index][0],
-                        borderColor: colorLineList[index][1],
+                        backgroundColor: colorLineList[index][2],
+                        borderColor: colorLineList[index][2],
                         z: 10,
                         yAxisID: "y",
                       },
@@ -387,25 +405,56 @@ const Home = () => {
 
       <div className="chart-header">
         <h3>PM2.5 Data</h3>
-
+        <form onSubmit={handleSubmitMA} className="ma-form">
+          <TextField
+            id="outlined-number"
+            type="number"
+            required
+            name="numberOfSamplesPM25"
+            sx={{ width: 170 }}
+            label="MA Number Of Samples"
+            size="small"
+            defaultValue={5}
+            InputProps={{
+              inputProps: { min: 1 },
+            }}
+          />
+          <Button type="submit" variant="contained" className="submit">
+            apply
+          </Button>
+        </form>
         <div className="time-interval-selector">
           <ToggleButtonGroup
             color="primary"
             value={timeIntervalPM25}
             exclusive
-            onChange={handleChange2}
+            onChange={handleChangePM25}
             aria-label="Platform"
             className="button-group"
           >
-            <ToggleButton value={1}>1 h</ToggleButton>
-            <ToggleButton value={4}>4 h</ToggleButton>
-            <ToggleButton value={8}>8 h</ToggleButton>
-            <ToggleButton value={12}>12 h</ToggleButton>
-            <ToggleButton value={24}>1 d</ToggleButton>
-            <ToggleButton value={72}>3 d</ToggleButton>
-            <ToggleButton value={168}>1 w</ToggleButton>
+            <ToggleButton sx={{ minWidth: "50px" }} value={1}>
+              1 h
+            </ToggleButton>
+            <ToggleButton sx={{ minWidth: "50px" }} value={4}>
+              4 h
+            </ToggleButton>
+            <ToggleButton sx={{ minWidth: "50px" }} value={8}>
+              8 h
+            </ToggleButton>
+            <ToggleButton sx={{ minWidth: "50px" }} value={12}>
+              12 h
+            </ToggleButton>
+            <ToggleButton sx={{ minWidth: "50px" }} value={24}>
+              1 d
+            </ToggleButton>
+            <ToggleButton sx={{ minWidth: "50px" }} value={72}>
+              3 d
+            </ToggleButton>
+            <ToggleButton sx={{ minWidth: "50px" }} value={168}>
+              1 w
+            </ToggleButton>
           </ToggleButtonGroup>
-          <form onSubmit={handleSubmit2} className="form">
+          <form onSubmit={handleSubmit} className="form">
             <TextField
               id="outlined-number"
               type="number"
@@ -421,7 +470,7 @@ const Home = () => {
               name="timeIntervalUnitPM25"
               value={timeIntervalUnitPM25}
               required
-              onChange={handleSelect2}
+              onChange={handleSelectPM25}
               sx={{ height: 40, width: 100 }}
             >
               <MenuItem value={1 / 60}>Mins</MenuItem>
@@ -487,8 +536,8 @@ const Home = () => {
                             x: moment(new Date(row.timestamp)),
                             y: row.moving_average,
                           })),
-                        backgroundColor: colorLineList[index][0],
-                        borderColor: colorLineList[index][1],
+                        backgroundColor: colorLineList[index][2],
+                        borderColor: colorLineList[index][2],
                         yAxisID: "y",
                       },
                       {

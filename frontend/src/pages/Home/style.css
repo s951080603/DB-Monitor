@@ -30,6 +30,10 @@
 .home .chart-header h3 {
   margin-left: 1.5rem;
 }
+.home .ma-form {
+  display: flex;
+  gap: 3px;
+}
 .home .time-interval-selector {
   align-self: flex-end;
   display: flex;
