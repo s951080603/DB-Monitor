@@ -60,9 +60,7 @@ const fetchRecordsInTimeInterval = async (
     const response = await fetch(
       `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=${subtype}`
     );
-    console.log(
-      `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=${subtype}`
-    );
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -80,9 +78,7 @@ const fetchTempRecordsInTimeInterval = async (timeInterval = 8, sensorType) => {
     const response = await fetch(
       `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=Temperature&sensorType=${sensorType}`
     );
-    console.log(
-      `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=Temperature&sensorType=${sensorType}`
-    );
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -533,7 +529,7 @@ const Home = () => {
           newOptions.scales.y.max = Math.round(
             timeIntervalPM25Data.reduce((max, row) => {
               const value = row.value;
-              return value > max ? value : max;
+              return Number(value) > max ? value : max;
             }, -Infinity) * 1.1
           );
 
