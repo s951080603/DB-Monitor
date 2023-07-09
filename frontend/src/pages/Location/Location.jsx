@@ -1,18 +1,18 @@
-import "./style.css";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import Input from "@mui/material/Input";
-import Button from "@mui/material/Button";
-import { useEffect, useState } from "react";
+import './style.css';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Input from '@mui/material/Input';
+import Button from '@mui/material/Button';
+import { useEffect, useState } from 'react';
 
-const ariaLabel = { "aria-label": "description" };
+const ariaLabel = { 'aria-label': 'description' };
 const fetchLocations = async () => {
-  const response = await fetch("http://chiu.hopto.org:8963/location");
+  const response = await fetch('http://chiu.hopto.org:8963/location');
   const data = await response.json();
   return data;
 };
@@ -40,11 +40,11 @@ const Location = () => {
       jsonForm[key] = value;
     });
 
-    fetch("http://chiu.hopto.org:8963/location", {
-      method: "POST",
+    fetch('http://chiu.hopto.org:8963/location', {
+      method: 'POST',
       body: JSON.stringify(jsonForm),
       headers: {
-        "Content-type": "application/json; charset=UTF-8",
+        'Content-type': 'application/json; charset=UTF-8',
       },
     })
       .then((res) => {
@@ -63,13 +63,13 @@ const Location = () => {
     // update locationList
   };
   return (
-    <section className="location-page-container">
-      <div className="logo">Location</div>
-      <div className="location-data">
+    <section className='location-page-container'>
+      <div className='logo'>Location</div>
+      <div className='location-data'>
         <TableContainer
           component={Paper}
           sx={{
-            width: "50%",
+            width: '50%',
             padding: 2,
             borderRadius: 5,
             boxShadow: 5,
@@ -77,12 +77,12 @@ const Location = () => {
             maxHeight: 700,
           }}
         >
-          <Table sx={{ minWidth: 400 }} aria-label="simple table">
+          <Table sx={{ minWidth: 400 }} aria-label='simple table'>
             <TableHead>
               <TableRow>
                 {locationListKey.map((key) => {
                   return (
-                    <TableCell align="center" key={key}>
+                    <TableCell align='center' key={key}>
                       {key}
                     </TableCell>
                   );
@@ -93,14 +93,14 @@ const Location = () => {
               {locationList.map((row) => (
                 <TableRow
                   key={row.locid}
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   {locationListKey.map((key) => {
                     return (
                       <TableCell
-                        align="center"
-                        component="th"
-                        scope="row"
+                        align='center'
+                        component='th'
+                        scope='row'
                         key={key}
                       >
                         {row[key]}
@@ -112,39 +112,39 @@ const Location = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <form className="location-form" onSubmit={handleSubmit}>
-          <div className="location-form-title">Add New Location</div>
-          <div className="data-container">
-            <label htmlFor="locid">locid: </label>
+        <form className='location-form' onSubmit={handleSubmit}>
+          <div className='location-form-title'>Add New Location</div>
+          <div className='data-container'>
+            <label htmlFor='locid'>locid: </label>
             <Input
               required
-              label="locid"
-              name="locid"
+              label='locid'
+              name='locid'
               value={locationList.length + 1}
             />
           </div>
-          <div className="data-container">
-            <label htmlFor="custid">custid: </label>
-            <Input required name="custid" label="custid" />
+          <div className='data-container'>
+            <label htmlFor='custid'>custid: </label>
+            <Input required name='custid' label='custid' />
           </div>
-          <div className="data-container">
-            <label htmlFor="bldno">bldno: </label>
-            <Input required name="bldno" label="bldno" />
+          <div className='data-container'>
+            <label htmlFor='bldno'>bldno: </label>
+            <Input required name='bldno' label='bldno' />
           </div>
-          <div className="data-container">
-            <label htmlFor="floor">floor: </label>
-            <Input required name="floor" label="floor" />
+          <div className='data-container'>
+            <label htmlFor='floor'>floor: </label>
+            <Input required name='floor' label='floor' />
           </div>
-          <div className="data-container">
-            <label htmlFor="locDesc">locDesc: </label>
-            <Input required name="locDesc" label="locDesc" />
+          <div className='data-container'>
+            <label htmlFor='locDesc'>locDesc: </label>
+            <Input required name='locDesc' label='locDesc' />
           </div>
 
           <Button
-            sx={{ width: "50%" }}
-            variant="contained"
-            color="success"
-            type="submit"
+            sx={{ width: '50%' }}
+            variant='contained'
+            color='success'
+            type='submit'
           >
             Submit
           </Button>

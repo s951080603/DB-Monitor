@@ -4,11 +4,11 @@ const DayQuery = () => {
       style={{
         paddingTop: 40,
         paddingLeft: 40,
-        border: "0",
-        width: "100%",
-        height: "90vh",
+        border: '0',
+        width: '100%',
+        height: '90vh',
       }}
-      src="http://chiu.hopto.org:8963/charts"
+      src='http://chiu.hopto.org:8963/charts'
     ></iframe>
   );
 };
