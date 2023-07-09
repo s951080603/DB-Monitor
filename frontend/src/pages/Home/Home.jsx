@@ -1,7 +1,7 @@
-import "./style.css";
-import { Chart } from "react-chartjs-2";
-import "chartjs-adapter-moment";
-import moment from "moment";
+import './style.css';
+import { Chart } from 'react-chartjs-2';
+import 'chartjs-adapter-moment';
+import moment from 'moment';
 import {
   Chart as ChartJS,
   TimeScale,
@@ -15,19 +15,19 @@ import {
   BarController,
   LineController,
   PointElement,
-} from "chart.js";
+} from 'chart.js';
 
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import Button from "@mui/material/Button";
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import Button from '@mui/material/Button';
 
-import { tvocSensorList, pm25SensorList } from "../../data";
-import { useEffect, useState } from "react";
-import TextField from "@mui/material/TextField";
+import { tvocSensorList, pm25SensorList } from '../../data';
+import { useEffect, useState } from 'react';
+import TextField from '@mui/material/TextField';
 
-import { order, colorLineList, colorList } from "../../data";
+import { order, colorLineList, colorList } from '../../data';
 
 ChartJS.register(
   PointElement,
@@ -43,22 +43,30 @@ ChartJS.register(
   Legend
 );
 
-const tvocSensorMap = new Map();
-const pm25SensorMap = new Map();
-
 const fetchRecordsInTimeInterval = async (
   timeInterval = 8,
-  subtype = "TVOC"
-) => {
-  const startTime = new Date(
+  subtype = 'TVOC',
+  startTime = new Date(
     Date.now() - timeInterval * 60 * 60 * 1000
-  ).toLocaleString("zh-TW", {
-    timeZone: "Asia/Taipei",
-    hourCycle: "h23",
+  ).toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    hourCycle: 'h23',
+  }),
+  endTime = ''
+) => {
+  startTime = startTime.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    hourCycle: 'h23',
   });
+
+  endTime = endTime?.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    hourCycle: 'h23',
+  });
+
   try {
     const response = await fetch(
-      `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=${subtype}`
+      `http://chiu.hopto.org:1234/record?startTime=${startTime}&subtype=${subtype}&endTime=${endTime}`
     );
 
     const data = await response.json();
@@ -67,16 +75,23 @@ const fetchRecordsInTimeInterval = async (
     console.log(error);
   }
 };
-const fetchTempRecordsInTimeInterval = async (timeInterval = 8, sensorType) => {
-  const startTime = new Date(
-    Date.now() - timeInterval * 60 * 60 * 1000
-  ).toLocaleString("zh-TW", {
-    timeZone: "Asia/Taipei",
-    hourCycle: "h23",
+const fetchTempRecordsInTimeInterval = async (
+  timeInterval = 8,
+  sensorType = 'TVOC',
+  startTime = new Date(Date.now() - timeInterval * 60 * 60 * 1000),
+  endTime = ''
+) => {
+  startTime = startTime.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    hourCycle: 'h23',
+  });
+  endTime = endTime?.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    hourCycle: 'h23',
   });
   try {
     const response = await fetch(
-      `http://chiu.hopto.org:8963/record?startTime=${startTime}&subtype=Temperature&sensorType=${sensorType}`
+      `http://chiu.hopto.org:1234/record?startTime=${startTime}&subtype=Temperature&sensorType=${sensorType}&endTime=${endTime}`
     );
 
     const data = await response.json();
@@ -89,17 +104,21 @@ const fetchTempRecordsInTimeInterval = async (timeInterval = 8, sensorType) => {
 const fetchRecordsMovingAverage = async (
   timeInterval = 8,
   numberOfSamples = 5,
-  subtype = "TVOC"
+  subtype = 'TVOC',
+  startTime = new Date(Date.now() - timeInterval * 60 * 60 * 1000),
+  endTime = ''
 ) => {
-  const startTime = new Date(
-    Date.now() - timeInterval * 60 * 60 * 1000
-  ).toLocaleString("zh-TW", {
-    timeZone: "Asia/Taipei",
-    hourCycle: "h23",
+  startTime = startTime.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    hourCycle: 'h23',
+  });
+  endTime = endTime?.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    hourCycle: 'h23',
   });
   try {
     const response = await fetch(
-      `http://chiu.hopto.org:8963/record/ma?startTime=${startTime}&numberOfSamples=${numberOfSamples}&subtype=${subtype}`
+      `http://chiu.hopto.org:1234/record/ma/revise?startTime=${startTime}&numberOfSamples=${numberOfSamples}&subtype=${subtype}&endTime=${endTime}`
     );
 
     const data = await response.json();
@@ -109,17 +128,6 @@ const fetchRecordsMovingAverage = async (
   }
 };
 
-const fetchMacList = async (subtype = "TVOC") => {
-  try {
-    const response = await fetch(
-      `http://chiu.hopto.org:8963/record/mac?subtype=${subtype}`
-    );
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.log(error);
-  }
-};
 const Home = () => {
   const [timeIntervalPM25Data, setTimeIntervalPM25Data] = useState([]);
   const [timeIntervalTVOCData, setTimeIntervalTVOCData] = useState([]);
@@ -142,7 +150,7 @@ const Home = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "top",
+        position: 'top',
       },
       title: {
         display: true,
@@ -153,22 +161,22 @@ const Home = () => {
     },
     scales: {
       x: {
-        type: "time",
+        type: 'time',
         max: moment(Date.now()),
         time: {
           displayFormats: {
-            minute: "HH:mm",
-            hour: "MMM D, HH:mm",
+            minute: 'HH:mm',
+            hour: 'MMM D, HH:mm',
           },
         },
       },
       y: {
-        type: "linear",
+        type: 'linear',
       },
       y1: {
-        type: "linear",
+        type: 'linear',
         display: true,
-        position: "right",
+        position: 'right',
         grid: {
           drawOnChartArea: false,
         },
@@ -177,14 +185,14 @@ const Home = () => {
   };
 
   useEffect(() => {
-    fetchRecordsInTimeInterval(timeIntervalTVOC, "TVOC")
+    fetchRecordsInTimeInterval(timeIntervalTVOC, 'TVOC')
       .then((data) => {
         setTimeIntervalTVOCData(data);
       })
       .catch((error) => {
         console.log(error);
       });
-    fetchTempRecordsInTimeInterval(timeIntervalTVOC, "TVOC")
+    fetchTempRecordsInTimeInterval(timeIntervalTVOC, 'TVOC')
       .then((data) => {
         setTimeIntervalTempTVOCData(data);
       })
@@ -193,14 +201,14 @@ const Home = () => {
       });
   }, [timeIntervalTVOC]);
   useEffect(() => {
-    fetchRecordsInTimeInterval(timeIntervalPM25, "PM2.5")
+    fetchRecordsInTimeInterval(timeIntervalPM25, 'PM2.5')
       .then((data) => {
         setTimeIntervalPM25Data(data);
       })
       .catch((error) => {
         console.log(error);
       });
-    fetchTempRecordsInTimeInterval(timeIntervalPM25, "PM2.5")
+    fetchTempRecordsInTimeInterval(timeIntervalPM25, 'PM2.5')
       .then((data) => {
         setTimeIntervalTempPM25Data(data);
       })
@@ -210,7 +218,7 @@ const Home = () => {
   }, [timeIntervalPM25]);
 
   useEffect(() => {
-    fetchRecordsMovingAverage(timeIntervalTVOC, numberOfSamplesTVOC, "TVOC")
+    fetchRecordsMovingAverage(timeIntervalTVOC, numberOfSamplesTVOC, 'TVOC')
       .then((data) => {
         setMovingAverageTVOCData(data);
       })
@@ -219,7 +227,7 @@ const Home = () => {
       });
   }, [timeIntervalTVOC, numberOfSamplesTVOC]);
   useEffect(() => {
-    fetchRecordsMovingAverage(timeIntervalPM25, numberOfSamplesPM25, "PM2.5")
+    fetchRecordsMovingAverage(timeIntervalPM25, numberOfSamplesPM25, 'PM2.5')
       .then((data) => {
         setMovingAveragePM25Data(data);
       })
@@ -273,35 +281,35 @@ const Home = () => {
   };
 
   return (
-    <section className="home">
-      <div className="chart-header">
+    <section className='home'>
+      <div className='chart-header'>
         <h3>TVOC Data</h3>
-        <form onSubmit={handleSubmitMA} className="ma-form">
+        <form onSubmit={handleSubmitMA} className='ma-form'>
           <TextField
-            id="outlined-number"
-            type="number"
+            id='outlined-number'
+            type='number'
             required
-            name="numberOfSamplesTVOC"
+            name='numberOfSamplesTVOC'
             sx={{ width: 170 }}
-            label="MA Number Of Samples"
-            size="small"
+            label='MA Number Of Samples'
+            size='small'
             defaultValue={5}
             InputProps={{
               inputProps: { min: 1 },
             }}
           />
-          <Button type="submit" variant="contained" className="submit">
+          <Button type='submit' variant='contained' className='submit'>
             apply
           </Button>
         </form>
-        <div className="time-interval-selector">
+        <div className='time-interval-selector'>
           <ToggleButtonGroup
-            color="primary"
+            color='primary'
             value={timeIntervalTVOC}
             exclusive
             onChange={handleChangeTVOC}
-            aria-label="Platform"
-            className="button-group"
+            aria-label='Platform'
+            className='button-group'
           >
             {/* hour base*/}
             <ToggleButton value={1}>1 h</ToggleButton>
@@ -312,20 +320,20 @@ const Home = () => {
             <ToggleButton value={72}>3 d</ToggleButton>
             <ToggleButton value={168}>1 w</ToggleButton>
           </ToggleButtonGroup>
-          <form onSubmit={handleSubmit} className="form">
+          <form onSubmit={handleSubmit} className='form'>
             <TextField
-              id="outlined-number"
-              type="number"
+              id='outlined-number'
+              type='number'
               required
-              name="timeIntervalTVOC"
+              name='timeIntervalTVOC'
               sx={{ width: 80 }}
-              size="small"
+              size='small'
               InputProps={{
                 inputProps: { min: 1 },
               }}
             />
             <Select
-              name="timeIntervalUnitTVOC"
+              name='timeIntervalUnitTVOC'
               value={timeIntervalUnitTVOC}
               required
               onChange={handleSelectTVOC}
@@ -337,14 +345,14 @@ const Home = () => {
               <MenuItem value={24 * 7}>Weeks</MenuItem>
               <MenuItem value={4 * 24 * 7}>Months</MenuItem>
             </Select>
-            <Button type="submit" variant="contained" className="submit">
+            <Button type='submit' variant='contained' className='submit'>
               apply
             </Button>
           </form>
         </div>
       </div>
 
-      <section className="chart-group">
+      <section className='chart-group'>
         {order.map((locDesc, index) => {
           const newOptions = JSON.parse(JSON.stringify(options));
 
@@ -375,31 +383,31 @@ const Home = () => {
           );
 
           return (
-            <div className="bar-chart" key={locDesc}>
+            <div className='bar-chart' key={locDesc}>
               <Chart
-                type="bar"
+                type='bar'
                 options={newOptions}
                 data={{
                   datasets: [
                     {
-                      type: "line",
-                      label: "TVOC MA",
+                      type: 'line',
+                      label: 'TVOC MA',
                       data: movingAverageTVOCData
                         ?.filter((row) => row.locDesc == locDesc)
                         .map((row) => ({
-                          x: moment(new Date(row.timestamp)),
+                          x: moment(new Date(row.start_interval)),
                           y: row.moving_average,
                         })),
                       backgroundColor: colorLineList[index][2],
                       borderColor: colorLineList[index][2],
                       pointStyle: false,
                       z: 10,
-                      yAxisID: "y",
+                      yAxisID: 'y',
                     },
 
                     {
-                      type: "line",
-                      label: "Temperature",
+                      type: 'line',
+                      label: 'Temperature',
                       data: timeIntervalTempTVOCData
                         ?.filter((row) => row.locDesc == locDesc)
                         .map((row) => ({
@@ -409,10 +417,10 @@ const Home = () => {
                       borderColor: colorLineList[index][0],
                       backgroundColor: colorLineList[index][0],
                       pointStyle: false,
-                      yAxisID: "y1",
+                      yAxisID: 'y1',
                     },
                     {
-                      label: "TVOC",
+                      label: 'TVOC',
                       data: timeIntervalTVOCData
                         ?.filter((row) => row.locDesc == locDesc)
                         .map((row) => ({
@@ -422,7 +430,7 @@ const Home = () => {
                       backgroundColor: colorList[index],
                       maxBarThickness: 20,
                       minBarLength: 5,
-                      yAxisID: "y",
+                      yAxisID: 'y',
                     },
                   ],
                 }}
@@ -432,71 +440,71 @@ const Home = () => {
         })}
       </section>
 
-      <div className="chart-header">
+      <div className='chart-header'>
         <h3>PM2.5 Data</h3>
-        <form onSubmit={handleSubmitMA} className="ma-form">
+        <form onSubmit={handleSubmitMA} className='ma-form'>
           <TextField
-            id="outlined-number"
-            type="number"
+            id='outlined-number'
+            type='number'
             required
-            name="numberOfSamplesPM25"
+            name='numberOfSamplesPM25'
             sx={{ width: 170 }}
-            label="MA Number Of Samples"
-            size="small"
+            label='MA Number Of Samples'
+            size='small'
             defaultValue={5}
             InputProps={{
               inputProps: { min: 1 },
             }}
           />
-          <Button type="submit" variant="contained" className="submit">
+          <Button type='submit' variant='contained' className='submit'>
             apply
           </Button>
         </form>
-        <div className="time-interval-selector">
+        <div className='time-interval-selector'>
           <ToggleButtonGroup
-            color="primary"
+            color='primary'
             value={timeIntervalPM25}
             exclusive
             onChange={handleChangePM25}
-            aria-label="Platform"
-            className="button-group"
+            aria-label='Platform'
+            className='button-group'
           >
-            <ToggleButton sx={{ minWidth: "50px" }} value={1}>
+            <ToggleButton sx={{ minWidth: '50px' }} value={1}>
               1 h
             </ToggleButton>
-            <ToggleButton sx={{ minWidth: "50px" }} value={4}>
+            <ToggleButton sx={{ minWidth: '50px' }} value={4}>
               4 h
             </ToggleButton>
-            <ToggleButton sx={{ minWidth: "50px" }} value={8}>
+            <ToggleButton sx={{ minWidth: '50px' }} value={8}>
               8 h
             </ToggleButton>
-            <ToggleButton sx={{ minWidth: "50px" }} value={12}>
+            <ToggleButton sx={{ minWidth: '50px' }} value={12}>
               12 h
             </ToggleButton>
-            <ToggleButton sx={{ minWidth: "50px" }} value={24}>
+            <ToggleButton sx={{ minWidth: '50px' }} value={24}>
               1 d
             </ToggleButton>
-            <ToggleButton sx={{ minWidth: "50px" }} value={72}>
+            <ToggleButton sx={{ minWidth: '50px' }} value={72}>
               3 d
             </ToggleButton>
-            <ToggleButton sx={{ minWidth: "50px" }} value={168}>
+            <ToggleButton sx={{ minWidth: '50px' }} value={168}>
               1 w
             </ToggleButton>
           </ToggleButtonGroup>
-          <form onSubmit={handleSubmit} className="form">
+          <form onSubmit={handleSubmit} className='form'>
             <TextField
-              id="outlined-number"
-              type="number"
+              id='outlined-number'
+              type='number'
               required
-              name="timeIntervalPM25"
+              name='timeIntervalPM25'
               sx={{ width: 80 }}
-              size="small"
+              size='small'
               InputProps={{
                 inputProps: { min: 1 },
               }}
             />
             <Select
-              name="timeIntervalUnitPM25"
+              name='timeIntervalUnitPM25'
               value={timeIntervalUnitPM25}
               required
               onChange={handleSelectPM25}
@@ -508,13 +516,13 @@ const Home = () => {
               <MenuItem value={24 * 7}>Weeks</MenuItem>
               <MenuItem value={4 * 24 * 7}>Months</MenuItem>
             </Select>
-            <Button type="submit" variant="contained" className="submit">
+            <Button type='submit' variant='contained' className='submit'>
               apply
             </Button>
           </form>
         </div>
       </div>
-      <section className="chart-group">
+      <section className='chart-group'>
         {order.map((locDesc, index) => {
           const newOptions = JSON.parse(JSON.stringify(options));
 
@@ -543,29 +551,29 @@ const Home = () => {
             Date.now() - timeIntervalPM25 * 60 * 60 * 1000
           );
           return (
-            <div className="bar-chart" key={locDesc}>
+            <div className='bar-chart' key={locDesc}>
               <Chart
-                type="bar"
+                type='bar'
                 options={newOptions}
                 data={{
                   datasets: [
                     {
-                      type: "line",
-                      label: "PM2.5 MA",
+                      type: 'line',
+                      label: 'PM2.5 MA',
                       data: movingAveragePM25Data
                         ?.filter((row) => row.locDesc == locDesc)
                         .map((row) => ({
-                          x: moment(new Date(row.timestamp)),
+                          x: moment(new Date(row.start_interval)),
                           y: row.moving_average,
                         })),
                       borderColor: colorLineList[index][2],
                       backgroundColor: colorLineList[index][2],
                       pointStyle: false,
-                      yAxisID: "y",
+                      yAxisID: 'y',
                     },
                     {
-                      type: "line",
-                      label: "Temperature",
+                      type: 'line',
+                      label: 'Temperature',
                       data: timeIntervalTempPM25Data
                         ?.filter((row) => row.locDesc == locDesc)
                         .map((row) => ({
@@ -575,10 +583,10 @@ const Home = () => {
                       borderColor: colorLineList[index][0],
                       backgroundColor: colorLineList[index][0],
                       pointStyle: false,
-                      yAxisID: "y1",
+                      yAxisID: 'y1',
                     },
                     {
-                      label: "PM2.5",
+                      label: 'PM2.5',
                       data: timeIntervalPM25Data
                         ?.filter((row) => row.locDesc == locDesc)
                         .map((row) => ({
@@ -587,7 +595,7 @@ const Home = () => {
                         })),
                       backgroundColor: colorList[index],
                       minBarLength: 5,
-                      yAxisID: "y",
+                      yAxisID: 'y',
                       maxBarThickness: 20,
                     },
                   ],

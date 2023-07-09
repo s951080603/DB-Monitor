@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 
 const ariaLabel = { "aria-label": "description" };
 const fetchLocations = async () => {
-  const response = await fetch("http://chiu.hopto.org:8963/location");
+  const response = await fetch("http://chiu.hopto.org:1234/location");
   const data = await response.json();
   return data;
 };
@@ -40,7 +40,7 @@ const Location = () => {
       jsonForm[key] = value;
     });
 
-    fetch("http://chiu.hopto.org:8963/location", {
+    fetch("http://chiu.hopto.org:1234/location", {
       method: "POST",
       body: JSON.stringify(jsonForm),
       headers: {
