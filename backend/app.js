@@ -273,7 +273,7 @@ app.get('/record', async (req, res) => {
     const startTime = req.query.startTime;
     const endTime = Math.floor(Date.now() / 1000);
     const subtype = req.query.subtype || 'TVOC';
-    const sensorType = req.query.sensorType || false;
+    const sensorType = req.query.sensorType || '';
     /* 將 JS timestamp 轉為 PostgreSQL timestamp without time zone*/
 
     formatData = await parseData(
