@@ -276,23 +276,8 @@ app.get('/record', async (req, res) => {
     const sensorType = req.query.sensorType || false;
     /* 將 JS timestamp 轉為 PostgreSQL timestamp without time zone*/
 
-    if (sensorType == 'PM2.5') {
-      formatData = await parseData(
-        `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations.locid, locations."locDesc"
-        FROM RegistedSnrs
-        INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid
-        INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid
-        INNER JOIN locations ON RegistedSnrs.locid = locations.locid
-        WHERE Records."timestamp" >= '${startTime}'
-        AND Records."timestamp" <= to_timestamp(${endTime})::timestamp without time zone
-        AND Subtype."Desc" = '${subtype}'
-        AND RegistedSnrs.sensorid <= 99 
-        AND RegistedSnrs.sensorid >= 76
-        ORDER BY Records."timestamp" DESC`
-      );
-    } else if (sensorType == 'TVOC') {
-      formatData = await parseData(
-        `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations.locid, locations."locDesc"
+    formatData = await parseData(
+      `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations.locid, locations."locDesc"
           FROM RegistedSnrs
           INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid
           INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid
@@ -300,23 +285,12 @@ app.get('/record', async (req, res) => {
           WHERE Records."timestamp" >= '${startTime}'
           AND Records."timestamp" <= to_timestamp(${endTime})::timestamp without time zone
           AND Subtype."Desc" = '${subtype}'
-          AND RegistedSnrs.sensorid <= 75
-          AND RegistedSnrs.sensorid >= 52
-          ORDER BY Records."timestamp" DESC`
-      );
-    } else {
-      formatData = await parseData(
-        `SELECT RegistedSnrs.sensorid, RegistedSnrs.mac, Subtype."Desc", Subtype.unit, Records.*, locations.locid, locations."locDesc"
-        FROM RegistedSnrs
-        INNER JOIN Subtype ON RegistedSnrs.stypeid = Subtype.stypeid
-        INNER JOIN Records ON RegistedSnrs.sensorid = Records.sensorid
-        INNER JOIN locations ON RegistedSnrs.locid = locations.locid
-        WHERE Records."timestamp" >= '${startTime}'
-        AND Records."timestamp" <= to_timestamp(${endTime})::timestamp without time zone
-        AND Subtype."Desc" = '${subtype}'
-        ORDER BY Records."timestamp" DESC`
-      );
-    }
+          ${
+            sensorType &&
+            `AND RegistedSnrs.sensorid <= ${sensorType == 'TVOC' ? 75 : 99}
+          AND RegistedSnrs.sensorid >= ${sensorType == 'TVOC' ? 52 : 76}`
+          } ORDER BY Records."timestamp" DESC`
+    );
 
     res.json(formatData);
   } catch (error) {
